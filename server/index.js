@@ -37,7 +37,7 @@ app.use(helmet({
 
 // 2. CORS Configuration (Dynamic)
 app.use(cors({
-  origin: process.env.FRONTEND_URL,
+  origin: '*', // Allow all origins for simplicity; adjust as needed for production
   credentials: true
 }));
 
