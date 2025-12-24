@@ -57,16 +57,20 @@ export default function Contact() {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-12 relative">
-        <Navbar />
-      {/* Background Ambience */}
-      <div className="fixed inset-0 bg-grid opacity-10 pointer-events-none -z-10" />
-      <div className="fixed top-20 right-0 w-72 h-72 bg-primary/10 rounded-full blur-[80px] pointer-events-none -z-10" />
+    // ✅ अपडेट 1: मेन कंटेनर में Theme Colors लगाए
+    <div className="min-h-screen pt-20 pb-12 relative bg-background text-foreground transition-colors duration-300">
+      <Navbar />
+      
+      {/* ✅ अपडेट 2: बैकग्राउंड ग्रिड और ब्लब्स को थीम के अनुसार एडजेस्ट किया */}
+      <div className="fixed inset-0 bg-grid-black/[0.02] dark:bg-grid-white/[0.02] pointer-events-none -z-10" />
+      <div className="fixed top-20 right-0 w-72 h-72 bg-primary/10 dark:bg-primary/20 rounded-full blur-[80px] pointer-events-none -z-10" />
+      <div className="fixed bottom-0 left-0 w-72 h-72 bg-purple-500/10 dark:bg-purple-500/20 rounded-full blur-[80px] pointer-events-none -z-10" />
 
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">
-            Get in Touch
+          {/* ✅ अपडेट 3: हेडिंग को ठीक किया (ताकि यह Light Mode में गायब न हो) */}
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground tracking-tight">
+            Get in <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-600">Touch</span>
           </h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Have questions about upcoming events, speaking opportunities, or just want to say hi? We'd love to hear from you.
@@ -76,57 +80,66 @@ export default function Contact() {
         <div className="grid lg:grid-cols-2 gap-12 items-start">
           {/* Left Side: Contact Info */}
           <div className="space-y-8">
-            <Card className="glass border-border">
+            {/* ✅ अपडेट 4: कार्ड बैकग्राउंड्स */}
+            <Card className="bg-card/50 backdrop-blur-sm border-border hover:border-primary/50 transition-colors shadow-sm">
               <CardContent className="p-8 space-y-8">
+                
+                {/* Email Section */}
                 <div className="flex items-start gap-4">
                   <div className="p-3 rounded-lg bg-primary/10 text-primary">
                     <Mail className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg mb-1">Email Us</h3>
+                    <h3 className="font-semibold text-lg mb-1 text-foreground">Email Us</h3>
                     <p className="text-muted-foreground mb-2">For general inquiries and support</p>
-                    <a href="mailto:codebuilders100@gmail.com" className="text-primary hover:underline">
+                    <a href="mailto:codebuilders100@gmail.com" className="text-primary hover:underline font-medium">
                       codebuilders100@gmail.com
                     </a>
                   </div>
                 </div>
 
+                {/* Address Section */}
                 <div className="flex items-start gap-4">
                   <div className="p-3 rounded-lg bg-primary/10 text-primary">
                     <MapPin className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg mb-1">Visit Us</h3>
-                    <p className="text-muted-foreground">
+                    <h3 className="font-semibold text-lg mb-1 text-foreground">Visit Us</h3>
+                    <p className="text-muted-foreground leading-relaxed">
                       Som-Lalit Institute of Computer Applications<br />
                       Navarangpura, Ahmedabad - 380009
                     </p>
                   </div>
                 </div>
 
+                {/* Phone Section */}
                 <div className="flex items-start gap-4">
                   <div className="p-3 rounded-lg bg-primary/10 text-primary">
                     <Phone className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg mb-1">Call Us</h3>
-                    <p className="text-muted-foreground">Mon-Fri from 9am to 6pm</p>
-                    <a href="tel:+919265328747" className="text-primary hover:underline">
-                      +91 92653 28747
-                    </a><br />
-                    <a href="tel:+917016798029" className="text-primary hover:underline">
-                      +91 70167 98029
-                    </a><br />
-                    <a href="tel:+919773272749" className="text-primary hover:underline">
-                      +91 97732 72749
-                    </a><br />
+                    <h3 className="font-semibold text-lg mb-1 text-foreground">Call Us</h3>
+                    <p className="text-muted-foreground mb-2">Mon-Fri from 9am to 6pm</p>
+                    <div className="space-y-1">
+                      <a href="tel:+919265328747" className="block text-primary hover:underline font-medium">
+                        +91 92653 28747
+                      </a>
+                      <a href="tel:+917016798029" className="block text-primary hover:underline font-medium">
+                        +91 70167 98029
+                      </a>
+                      <a href="tel:+919773272749" className="block text-primary hover:underline font-medium">
+                        +91 97732 72749
+                      </a>
+                    </div>
                   </div>
                 </div>
+
               </CardContent>
             </Card>
 
             {/* Map Placeholder */}
-            <div className="h-64 rounded-xl overflow-hidden border border-border grayscale hover:grayscale-0 transition-all duration-500">
+            {/* ✅ अपडेट 5: मैप कंटेनर का बॉर्डर */}
+            <div className="h-64 rounded-xl overflow-hidden border border-border shadow-sm grayscale hover:grayscale-0 transition-all duration-500 bg-muted">
               <iframe 
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14686.517597375094!2d72.50043585!3d23.0373516!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395e9b7b96a8a5f3%3A0x7000000000000000!2sAhmedabad%2C%20Gujarat!5e0!3m2!1sen!2sin!4v1710000000000" 
                 width="100%" 
@@ -135,14 +148,16 @@ export default function Contact() {
                 allowFullScreen="" 
                 loading="lazy" 
                 referrerPolicy="no-referrer-when-downgrade"
+                title="Location Map"
               ></iframe>
             </div>
           </div>
 
           {/* Right Side: Form */}
-          <Card className="glass border-border">
+          {/* ✅ अपडेट 6: फॉर्म कार्ड बैकग्राउंड */}
+          <Card className="bg-card/50 backdrop-blur-sm border-border shadow-lg">
             <CardHeader>
-              <CardTitle>Send a Message</CardTitle>
+              <CardTitle className="text-foreground">Send a Message</CardTitle>
               <CardDescription>Fill out the form below and we'll get back to you shortly.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -154,9 +169,9 @@ export default function Contact() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Name</FormLabel>
+                          <FormLabel className="text-foreground">Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="John Doe" {...field} />
+                            <Input placeholder="John Doe" {...field} className="bg-background border-input" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -167,9 +182,9 @@ export default function Contact() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel className="text-foreground">Email</FormLabel>
                           <FormControl>
-                            <Input placeholder="john@example.com" {...field} />
+                            <Input placeholder="john@example.com" {...field} className="bg-background border-input" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -182,9 +197,9 @@ export default function Contact() {
                     name="subject"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Subject</FormLabel>
+                        <FormLabel className="text-foreground">Subject</FormLabel>
                         <FormControl>
-                          <Input placeholder="Speaking Opportunity" {...field} />
+                          <Input placeholder="Speaking Opportunity" {...field} className="bg-background border-input" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -196,11 +211,11 @@ export default function Contact() {
                     name="message"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Message</FormLabel>
+                        <FormLabel className="text-foreground">Message</FormLabel>
                         <FormControl>
                           <Textarea 
                             placeholder="Tell us more about your inquiry..." 
-                            className="min-h-[120px]"
+                            className="min-h-[120px] bg-background border-input"
                             {...field} 
                           />
                         </FormControl>
@@ -209,7 +224,7 @@ export default function Contact() {
                     )}
                   />
 
-                  <Button type="submit" className="w-full" disabled={mutation.isPending}>
+                  <Button type="submit" className="w-full shadow-lg shadow-primary/20" disabled={mutation.isPending}>
                     {mutation.isPending ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />

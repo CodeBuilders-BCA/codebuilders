@@ -21,20 +21,26 @@ export default function VolunteerPanel() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  // 1. Fetch Volunteer Profile to get assigned Event ID
   const { data: volunteer } = useQuery({
     queryKey: ['volunteer-info'],
     queryFn: () => apiClient.getVolunteerMe(),
     retry: false 
   });
 
+  // 2. ✅ Fetch Registrations for the SPECIFIC Event (Using the new safe API)
   const { data: registrations = [], isRefetching } = useQuery({
     queryKey: ['volunteer-registrations', volunteer?.assignedEventId],
     queryFn: async () => {
-      if (!volunteer?.assignedEventId) return [];
-      const eventId = typeof volunteer.assignedEventId === 'object' 
+      // Handle both object (populated) and string ID cases
+      const eventId = typeof volunteer?.assignedEventId === 'object' 
         ? volunteer.assignedEventId._id 
-        : volunteer.assignedEventId;
-      return await apiClient.getAllRegistrations(eventId);
+        : volunteer?.assignedEventId;
+      
+      if (!eventId) return [];
+
+      // ✅ FIX: Use getEventRegistrations (Volunteer Accessible) instead of getAllRegistrations
+      return await apiClient.getEventRegistrations(eventId);
     },
     enabled: !!volunteer?.assignedEventId,
     refetchInterval: 5000, 

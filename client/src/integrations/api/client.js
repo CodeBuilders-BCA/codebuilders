@@ -169,13 +169,12 @@ class ApiClient {
   // 🎟️ REGISTRATIONS (✅ UPDATED)
   // ---------------------------------------------------------------------------
   
-  // Updated to support Page, Search, Limit (Batches), and EventID
+  // 1. Admin: Get ALL registrations with pagination/search
   async getAllRegistrations(page = 1, search = '', limit = 10, eventId = null) { 
-    // Using URLSearchParams to handle query string cleanly
     const params = new URLSearchParams();
     
     params.append('page', page);
-    params.append('limit', limit); // Can be number (10) or string ('all')
+    params.append('limit', limit);
     
     if (search) {
         params.append('search', search);
@@ -188,11 +187,18 @@ class ApiClient {
     return this.request(`/registrations?${params.toString()}`); 
   }
 
-  // ✅ NEW: Fetch recent registrations (Top 5)
+  // 2. Admin: Get Recent Registrations
   async getRecentRegistrations() {
     return this.request('/registrations/recent');
   }
 
+  // 3. ✅ NEW: Volunteer/Admin - Get registrations for a SPECIFIC event
+  // This is what the Volunteer Panel uses
+  async getEventRegistrations(eventId) {
+    return this.request(`/registrations/event/${eventId}`);
+  }
+
+  // 4. Update Attendance
   async toggleRegistrationAttendance(id, isAttended) {
       return this.request(`/registrations/${id}/attendance`, { 
         method: 'PUT', 

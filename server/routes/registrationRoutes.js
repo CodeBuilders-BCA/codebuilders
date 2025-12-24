@@ -8,6 +8,7 @@ const {
   checkInRegistration,
   updateAttendance,
   deleteRegistration,
+  getEventRegistrations, // 👈 ✅ IMPORT THIS (Crucial for Volunteers)
 } = require("../controllers/registrationController");
 
 // Auth Middleware
@@ -18,7 +19,6 @@ const { protect, admin } = require("../middleware/authMiddleware");
 // ==================================================================
 
 // 1. Create Registration (Guest User Allowed)
-// ⚠️ Yahan se 'protect' hata diya gaya hai. Ab bina login ke form submit hoga.
 router.post("/", registerForEvent);
 
 // 2. View Ticket (Guest User Allowed)
@@ -26,22 +26,33 @@ router.get("/ticket/:tokenId", getTicketByToken);
 
 
 // ==================================================================
-// 🔒 ADMIN / PROTECTED ROUTES (Login Required)
+// 🔒 PROTECTED ROUTES (Login Required)
 // ==================================================================
 
-// Get All Registrations (Admin Only)
+// ✅ VOLUNTEER & ADMIN ROUTE
+// This prevents the 401 Error on the Volunteer Panel.
+// It allows fetching registrations for a specific event without needing Admin role.
+router.get("/event/:eventId", protect, getEventRegistrations);
+
+// ------------------------------------------------------------------
+
+// ✅ ADMIN ONLY ROUTES
+// Get All Registrations (Global list)
 router.get("/", protect, admin, getAllRegistrations);
 
-// Get Recent Activity (Admin Only)
+// Get Recent Activity
 router.get("/recent", protect, admin, getRecentRegistrations);
 
-// Check-in User (Volunteer/Admin)
+// Delete Registration
+router.delete("/:id", protect, admin, deleteRegistration);
+
+// ------------------------------------------------------------------
+
+// ✅ SHARED (Volunteer or Admin)
+// Check-in User
 router.put("/checkin/:tokenId", protect, checkInRegistration);
 
-// Toggle Attendance (Volunteer/Admin)
+// Toggle Attendance
 router.put("/:id/attendance", protect, updateAttendance); 
-
-// Delete Registration (Admin Only)
-router.delete("/:id", protect, admin, deleteRegistration);
 
 module.exports = router;
