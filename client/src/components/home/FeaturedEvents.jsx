@@ -1,4 +1,5 @@
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button"; 
+import { cn } from "@/lib/utils"; 
 import { Link } from "react-router-dom";
 import { Calendar, MapPin, Users, ArrowRight, Loader2 } from "lucide-react";
 import { format, isValid } from "date-fns"; 
@@ -12,7 +13,7 @@ export function FeaturedEvents() {
   // Fallback Image Constant
   const PLACEHOLDER_IMAGE = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80";
 
-  // 👇 1. ADDED: Helper logic to handle Local vs External URLs
+  // Helper logic to handle Local vs External URLs
   const getImageUrl = (imagePath) => {
     if (!imagePath) return PLACEHOLDER_IMAGE; // Fallback if null
 
@@ -29,7 +30,7 @@ export function FeaturedEvents() {
     return `${baseUrl}${normalizedPath}`;
   };
 
-  // 👇 2. UPDATED: Fallback for broken images
+  // Fallback for broken images
   const handleImageError = (e) => {
     e.target.src = PLACEHOLDER_IMAGE;
   };
@@ -68,19 +69,21 @@ export function FeaturedEvents() {
               const eventDateObj = new Date(rawDate);
               const isDateValid = isValid(eventDateObj);
 
-              // 👇 3. UPDATED: Use the helper function here
+              // Use the helper function here
               const displayImage = getImageUrl(event.imageUrl || event.image_url);
 
               return (
-                <div
+                // ✅ FIXED: Removed 'block' from className to fix conflict with 'flex'
+                <Link
+                  to={`/events/${event._id}`}
                   key={event._id}
-                  className="group glass rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-500 animate-fade-in"
+                  className="group glass rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-500 animate-fade-in h-full flex flex-col"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  {/* Image */}
-                  <div className="relative h-48 overflow-hidden">
+                  {/* Image Section */}
+                  <div className="relative h-48 overflow-hidden shrink-0">
                     <img
-                      src={displayImage} // 👈 Using the processed URL
+                      src={displayImage} // Using the processed URL
                       alt={event.title}
                       onError={handleImageError} 
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
@@ -97,12 +100,12 @@ export function FeaturedEvents() {
                     </div>
                   </div>
 
-                  {/* Content */}
-                  <div className="p-6">
+                  {/* Content Section */}
+                  <div className="p-6 flex flex-col flex-grow">
                     <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors line-clamp-1">
                       {event.title}
                     </h3>
-                    <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                    <p className="text-muted-foreground text-sm mb-4 line-clamp-2 flex-grow">
                       {event.description}
                     </p>
 
@@ -124,14 +127,18 @@ export function FeaturedEvents() {
                       )}
                     </div>
 
-                    <Link to={`/events/${event._id}`}>
-                      <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all">
-                        {event.status === "upcoming" ? "Register Now" : "View Details"}
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
-                    </Link>
+                    {/* ✅ FAKE BUTTON (DIV) */}
+                    <div 
+                      className={cn(
+                        buttonVariants({ variant: "outline" }),
+                        "w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all"
+                      )}
+                    >
+                      {event.status === "upcoming" ? "Register Now" : "View Details"}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </div>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
