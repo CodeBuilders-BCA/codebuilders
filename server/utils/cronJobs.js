@@ -1,6 +1,7 @@
 const cron = require("node-cron");
 const Event = require("../models/Event");
 const Registration = require("../models/Registration");
+const ExternalEvent = require("../models/ExternalEvent");
 const sendEmail = require("./sendEmail");
 
 const startCronJobs = () => {

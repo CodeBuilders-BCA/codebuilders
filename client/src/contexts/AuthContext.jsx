@@ -57,6 +57,34 @@ export function AuthProvider({ children }) {
     initAuth();
   }, []);
 
+  const signUp = async (name, email, password) => {
+  try {
+    // Ensure backend route exists: POST /auth/register
+    const res = await api.post('/auth/register', {
+      name,
+      email,
+      password,
+    });
+
+    const { token, user: userData } = res.data;
+
+    localStorage.setItem('token', token);
+    setUser(userData);
+    setSession({ access_token: token });
+    checkRoles(userData);
+
+    return { error: null };
+  } catch (error) {
+    return {
+      error:
+        error.response?.data?.message ||
+        error.message ||
+        "Signup failed",
+    };
+  }
+};
+
+
   const signIn = async (email, password) => {
     try {
       // Ensure your backend has a POST /api/auth/login route
@@ -93,7 +121,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, isVolunteer, isLoading, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, isAdmin, isVolunteer, isLoading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );

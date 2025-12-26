@@ -1,6 +1,6 @@
+const dotenv = require("dotenv").config();
 const startCronJobs = require("./utils/cronJobs");
 const express = require("express");
-const dotenv = require("dotenv");
 const cors = require("cors");
 const connectDB = require("./config/db");
 
@@ -20,8 +20,8 @@ const adminRoutes = require("./routes/adminRoutes");
 const volunteerRoutes = require("./routes/volunteerRoutes");
 const contactRoutes = require("./routes/contactRoutes");
 const messageRoutes = require("./routes/messageRoutes");
+const externalEventsRoutes = require("./routes/externalEventsRoutes");
 
-dotenv.config();
 connectDB();
 
 const app = express();
@@ -98,6 +98,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/volunteers", volunteerRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/external-events", externalEventsRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running...");

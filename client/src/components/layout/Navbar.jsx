@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Sun, Moon } from "lucide-react"; // 👈 Import Sun and Moon
+import { Menu, X, Sun, Moon, User, LogOut } from "lucide-react"; // 👈 Import Sun and Moon
 import { useTheme } from "@/components/theme-provider"; // 👈 Import useTheme hook
+import { useAuth } from "@/contexts/AuthContext";
 
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/events", label: "Events" },
+  { href: "/external-events", label: "External Events" },
+  { href: "/hackathons", label: "Hackathons" },
   { href: "/speakers", label: "Speakers" },
   { href: "/memories", label: "Memories" },
   { href: "/about", label: "About" },
@@ -17,6 +20,12 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const { theme, setTheme } = useTheme(); // 👈 Access theme state
+  const { user, signOut } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    setIsOpen(false);
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border">
@@ -63,11 +72,40 @@ export function Navbar() {
               <span className="sr-only">Toggle theme</span>
             </Button>
 
-            <Link to="/events?filter=upcoming">
-              <Button variant="glow" size="sm">
-                Register Now
-              </Button>
-            </Link>
+            {user ? (
+              // Logged in user actions
+              <>
+                <Link to="/events?filter=upcoming">
+                  <Button variant="glow" size="sm">
+                    Register Now
+                  </Button>
+                </Link>
+                <Link to="/profile">
+                  <Button variant="ghost" size="sm">
+                    <User className="w-4 h-4 mr-2" />
+                    Profile
+                  </Button>
+                </Link>
+                <Button variant="ghost" size="sm" onClick={handleLogout}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              // Not logged in actions
+              <>
+                <Link to="/login">
+                  <Button variant="ghost" size="sm">
+                    Login
+                  </Button>
+                </Link>
+                <Link to="/signup">
+                  <Button variant="glow" size="sm">
+                    Sign Up
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Actions */}
@@ -110,11 +148,40 @@ export function Navbar() {
                 </Link>
               ))}
               
-              <Link to="/events?filter=upcoming" onClick={() => setIsOpen(false)}>
-                <Button variant="glow" className="w-full mt-2">
-                  Register Now
-                </Button>
-              </Link>
+              {user ? (
+                // Logged in mobile actions
+                <>
+                  <Link to="/events?filter=upcoming" onClick={() => setIsOpen(false)}>
+                    <Button variant="glow" className="w-full mt-2">
+                      Register Now
+                    </Button>
+                  </Link>
+                  <Link to="/profile" onClick={() => setIsOpen(false)}>
+                    <Button variant="ghost" className="w-full">
+                      <User className="w-4 h-4 mr-2" />
+                      Profile
+                    </Button>
+                  </Link>
+                  <Button variant="ghost" className="w-full" onClick={handleLogout}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                // Not logged in mobile actions
+                <>
+                  <Link to="/login" onClick={() => setIsOpen(false)}>
+                    <Button variant="ghost" className="w-full">
+                      Login
+                    </Button>
+                  </Link>
+                  <Link to="/signup" onClick={() => setIsOpen(false)}>
+                    <Button variant="glow" className="w-full mt-2">
+                      Sign Up
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         )}

@@ -8,13 +8,19 @@ import { ThemeProvider } from "@/components/theme-provider";
 
 import Index from "./pages/Index";
 import Events from "./pages/Events";
+import ExternalEvents from "./pages/ExternalEvents";
+import ExternalEventDetail from "./pages/ExternalEventDetail";
+import Hackathons from "./pages/Hackathons";
 import EventDetail from "./pages/EventDetail";
 import Speakers from "./pages/Speakers";
 import Memories from "./pages/Memories";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import AdminOverview from "./pages/admin/AdminOverview";
 import AdminEvents from "./pages/admin/AdminEvents";
+import AdminExternalEvents from "./pages/admin/AdminExternalEvents";
 import AdminSpeakers from "./pages/admin/AdminSpeakers";
 import AdminRegistrations from "./pages/admin/AdminRegistrations";
 import AdminVolunteers from "./pages/admin/AdminVolunteers";
@@ -27,7 +33,7 @@ import TermsOfService from "./pages/TermsOfService";
 import TicketView from "./pages/TicketView";
 import AdminMemories from './pages/admin/AdminMemories';
 // ❌ CertificateDesigner import removed
-import Profile from './pages/common/Profile'; 
+import Profile from './pages/Profile'; 
 import ForgotPassword from './pages/ForgotPassword';
 
 const queryClient = new QueryClient();
@@ -44,6 +50,9 @@ const App = () => (
             {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/events" element={<Events />} />
+            <Route path="/external-events" element={<ExternalEvents />} />
+            <Route path="/external-events/:id" element={<ExternalEventDetail />} />
+            <Route path="/hackathons" element={<Hackathons />} />
             <Route path="/events/:id" element={<EventDetail />} />
             <Route path="/speakers" element={<Speakers />} />
             <Route path="/memories" element={<Memories />} />
@@ -52,6 +61,8 @@ const App = () => (
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
             
             {/* SHARED PROFILE ROUTE */}
             <Route path="/profile" element={<Profile />} />
@@ -60,6 +71,7 @@ const App = () => (
             {/* Admin routes */}
             <Route path="/admin" element={<AdminOverview />} />
             <Route path="/admin/events" element={<AdminEvents />} />
+            <Route path="/admin/external-events" element={<AdminExternalEvents />} />
             {/* ❌ Certificate Designer Route removed */}
             <Route path="/admin/memories" element={<AdminMemories />} />
             <Route path="/admin/speakers" element={<AdminSpeakers />} />

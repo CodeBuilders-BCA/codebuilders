@@ -1,4 +1,4 @@
-import { Calendar, Image, Users, UserCheck, Mic, LogOut, LayoutDashboard, Mail, User } from 'lucide-react';
+import { Calendar, Image, Users, UserCheck, Mic, LogOut, LayoutDashboard, Mail, User, ExternalLink } from 'lucide-react';
 import { NavLink } from 'react-router-dom'; 
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 const menuItems = [
   { title: 'Overview', url: '/admin', icon: LayoutDashboard },
   { title: 'Events', url: '/admin/events', icon: Calendar },
+  { title: 'External Events', url: '/admin/external-events', icon: ExternalLink },
   { title: 'Memories', url: '/admin/memories', icon: Image },
   { title: 'Speakers', url: '/admin/speakers', icon: Mic },
   { title: 'Registrations', url: '/admin/registrations', icon: Users },

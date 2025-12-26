@@ -72,7 +72,7 @@ export default function PrivacyPolicy() {
             <section className="space-y-4">
               <h2 className="text-xl font-bold text-primary">5. Contact Us</h2>
               <p className="text-muted-foreground leading-relaxed">
-                If you have any questions about this privacy policy or our privacy practices, please contact us at: <a href="mailto:privacy@codebuilders.com" className="text-primary hover:underline">privacy@codebuilders.com</a>
+                If you have any questions about this privacy policy or our privacy practices, please contact us at: <a href="mailto:privacy@codebuilders.com" className="text-primary hover:underline">codebuilders100@gmail.com</a>
               </p>
             </section>
           </div>

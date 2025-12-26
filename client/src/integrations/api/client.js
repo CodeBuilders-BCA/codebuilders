@@ -250,6 +250,34 @@ class ApiClient {
       method: 'DELETE'
     });
   }
+
+  // ---------------------------------------------------------------------------
+  // 🌍 EXTERNAL EVENTS
+  // ---------------------------------------------------------------------------
+
+  async getExternalEvents(type = null, status = null) {
+    const params = new URLSearchParams();
+    if (type) params.append('type', type);
+    if (status) params.append('status', status);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return this.request(`/external-events${query}`);
+  }
+
+  async getExternalEvent(id) {
+    return this.request(`/external-events/${id}`);
+  }
+
+  async createExternalEvent(data) {
+    return this.request('/external-events', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  async updateExternalEvent(id, data) {
+    return this.request(`/external-events/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+  }
+
+  async deleteExternalEvent(id) {
+    return this.request(`/external-events/${id}`, { method: 'DELETE' });
+  }
 }
 
 export const apiClient = new ApiClient();

@@ -16,7 +16,7 @@ const registrationSchema = mongoose.Schema(
     },
     userName: { type: String, required: true },
     userEmail: { type: String, required: true },
-    userPhone: { type: String },
+    userPhone: { type: String, required: true },
     
     // Auto-generate unique Token ID for QR Codes
     tokenId: { 
