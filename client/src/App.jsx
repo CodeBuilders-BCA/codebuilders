@@ -24,6 +24,7 @@ import AdminExternalEvents from "./pages/admin/AdminExternalEvents";
 import AdminSpeakers from "./pages/admin/AdminSpeakers";
 import AdminRegistrations from "./pages/admin/AdminRegistrations";
 import AdminVolunteers from "./pages/admin/AdminVolunteers";
+import AdminUsers from './pages/admin/AdminUsers';
 import VolunteerPanel from "./pages/volunteer/VolunteerPanel";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -31,8 +32,6 @@ import AdminMessages from "./pages/admin/AdminMessages";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import TicketView from "./pages/TicketView";
-import AdminMemories from './pages/admin/AdminMemories';
-// ❌ CertificateDesigner import removed
 import Profile from './pages/Profile'; 
 import ForgotPassword from './pages/ForgotPassword';
 
@@ -72,11 +71,10 @@ const App = () => (
             <Route path="/admin" element={<AdminOverview />} />
             <Route path="/admin/events" element={<AdminEvents />} />
             <Route path="/admin/external-events" element={<AdminExternalEvents />} />
-            {/* ❌ Certificate Designer Route removed */}
-            <Route path="/admin/memories" element={<AdminMemories />} />
             <Route path="/admin/speakers" element={<AdminSpeakers />} />
             <Route path="/admin/registrations" element={<AdminRegistrations />} />
             <Route path="/admin/volunteers" element={<AdminVolunteers />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/messages" element={<AdminMessages />} />
             
             {/* Volunteer routes */}

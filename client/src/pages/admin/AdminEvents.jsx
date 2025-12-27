@@ -20,6 +20,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
+  AlertDialogDescription, // ✅ Added Description
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -38,7 +39,6 @@ export default function AdminEvents() {
   const [editingEvent, setEditingEvent] = useState(null);
   const fileInputRef = useRef(null);
   
-  // State for Toggles
   const [regEnabled, setRegEnabled] = useState(true);
 
   const queryClient = useQueryClient();
@@ -51,8 +51,6 @@ export default function AdminEvents() {
     },
   });
 
-  // --- MUTATIONS ---
-  
   const createMutation = useMutation({
     mutationFn: async (formData) => await apiClient.createEvent(formData),
     onSuccess: () => {
@@ -85,9 +83,7 @@ export default function AdminEvents() {
     onError: (error) => toast({ variant: 'destructive', title: 'Error', description: error.message }),
   });
 
-  // --- HELPER: Parse Date for 12h Form ---
   const getEventDateParts = (isoString) => {
-    // Default: Tomorrow 9:00 AM
     if (!isoString) {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
@@ -105,26 +101,23 @@ export default function AdminEvents() {
     const ampm = h >= 12 ? 'PM' : 'AM';
     
     h = h % 12;
-    h = h ? h : 12; // Convert 0 to 12
+    h = h ? h : 12;
 
     return {
       date: format(d, 'yyyy-MM-dd'),
       hour: h.toString(),
-      minute: m.toString().padStart(2, '0'), // Ensure "05" format
+      minute: m.toString().padStart(2, '0'), 
       ampm
     };
   };
 
   const defaultParts = getEventDateParts(editingEvent?.dateTime);
 
-  // --- HANDLERS ---
-
   const handleSubmit = (e) => {
     e.preventDefault();
     const form = e.currentTarget;
     const formData = new FormData(form);
 
-    // 1. Manually Reconstruct DateTime from 12h parts
     const datePart = formData.get('datePart');
     const hourPart = formData.get('timeHour');
     const minutePart = formData.get('timeMinute');
@@ -136,22 +129,17 @@ export default function AdminEvents() {
 
     const finalIsoString = new Date(`${datePart}T${hour24.toString().padStart(2, '0')}:${minutePart}:00`).toISOString();
     
-    // Replace the split fields with the single expected field
     formData.set('dateTime', finalIsoString);
     formData.delete('datePart');
     formData.delete('timeHour');
     formData.delete('timeMinute');
     formData.delete('timeAmPm');
 
-    // 2. Append Toggles
     formData.set('isRegistrationEnabled', String(regEnabled)); 
     
-    // 3. Calc Status
     const status = new Date(finalIsoString) < new Date() ? 'past' : 'upcoming';
     formData.set('status', status);
-
-    // Note: formData already contains 'image' file input which matches backend configuration
-
+    
     if (editingEvent) {
       updateMutation.mutate({ id: editingEvent._id, formData });
     } else {
@@ -198,8 +186,6 @@ export default function AdminEvents() {
               </DialogHeader>
               
               <form onSubmit={handleSubmit} className="space-y-6 mt-4" encType="multipart/form-data">
-                
-                {/* --- Basic Details --- */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium border-b pb-2">Basic Details</h3>
                   <div className="grid grid-cols-2 gap-4">
@@ -235,10 +221,7 @@ export default function AdminEvents() {
                     <Textarea id="fullDescription" name="fullDescription" defaultValue={editingEvent?.fullDescription ?? ''} rows={4} />
                   </div>
 
-                  {/* 12-Hour Date & Time Picker */}
                   <div className="grid grid-cols-2 gap-4">
-                    
-                    {/* Date Picker */}
                     <div className="space-y-2">
                       <Label htmlFor="datePart">Date</Label>
                       <Input
@@ -250,11 +233,9 @@ export default function AdminEvents() {
                       />
                     </div>
                     
-                    {/* Time Picker (Hour : Minute : AM/PM) */}
                     <div className="space-y-2">
                       <Label>Time</Label>
                       <div className="flex gap-2">
-                        {/* Hour */}
                         <div className="flex-1">
                             <select 
                                 name="timeHour" 
@@ -269,7 +250,6 @@ export default function AdminEvents() {
                         
                         <span className="self-center font-bold">:</span>
                         
-                        {/* Minute */}
                         <div className="flex-1">
                              <select 
                                 name="timeMinute" 
@@ -283,7 +263,6 @@ export default function AdminEvents() {
                             </select>
                         </div>
 
-                        {/* AM/PM */}
                         <div className="flex-1">
                             <select 
                                 name="timeAmPm" 
@@ -303,22 +282,38 @@ export default function AdminEvents() {
                       <Input id="maxAttendees" name="maxAttendees" type="number" defaultValue={editingEvent?.maxAttendees ?? 500} />
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4 items-start">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                     <div className="space-y-2">
-                      <Label htmlFor="image">Event Image</Label>
-                      {/* Name 'image' matches backend upload.fields */}
+                      <Label htmlFor="image">Event Cover Image</Label>
                       <Input id="image" name="image" type="file" accept="image/*" ref={fileInputRef} />
                       
-                      {/* ✅ Updated: Use direct Cloudinary URL */}
                       {editingEvent?.imageUrl && (
-                        <div className="mt-2 w-24 h-24 rounded overflow-hidden border">
+                        <div className="mt-2 w-full h-32 rounded-md overflow-hidden border border-border relative group">
                           <img 
                             src={editingEvent.imageUrl} 
                             alt="Current Event" 
                             className="w-full h-full object-cover" 
                           />
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                            Current Cover
+                          </div>
                         </div>
                       )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="memoriesUrl">Memories Album Link</Label>
+                      <Input 
+                        id="memoriesUrl" 
+                        name="memoriesUrl" 
+                        type="url" 
+                        placeholder="https://photos.google.com/share/..." 
+                        defaultValue={editingEvent?.memoriesUrl ?? ''} 
+                      />
+                      <p className="text-[0.8rem] text-muted-foreground">
+                        Paste the link to your external photo album (Google Drive/Photos).
+                        A "View Album" button will appear on the event page.
+                      </p>
                     </div>
                   </div>
 
@@ -344,7 +339,6 @@ export default function AdminEvents() {
           </Dialog>
         </div>
 
-        {/* --- Events Table --- */}
         <Card className="glass border-border">
           <CardContent className="p-0">
             {isLoading ? (
@@ -369,7 +363,6 @@ export default function AdminEvents() {
                     return (
                       <TableRow key={event._id}>
                         <TableCell className="font-medium flex items-center gap-2">
-                           {/* ✅ Updated: Use direct Cloudinary URL */}
                           {event.imageUrl ? (
                             <img src={event.imageUrl} className="w-8 h-8 rounded object-cover" alt="" />
                           ) : (
@@ -409,6 +402,7 @@ export default function AdminEvents() {
                             <Pencil className="w-4 h-4" />
                           </Button>
                           
+                          {/* ✅ AlertDialog Added Here */}
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
@@ -418,18 +412,24 @@ export default function AdminEvents() {
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Delete Event?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete <strong>{event.title}</strong>?
+                                  <br />
+                                  This will also remove all associated registrations and data. This action cannot be undone.
+                                </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction 
                                   onClick={() => deleteMutation.mutate(event._id)}
-                                  className="bg-destructive"
+                                  className="bg-destructive hover:bg-destructive/90"
                                 >
                                   Delete
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
+
                         </TableCell>
                       </TableRow>
                     );

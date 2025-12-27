@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { format, isValid, isPast } from "date-fns";
+import { format, isValid, isPast, isToday, startOfDay } from "date-fns";
 import { Calendar, MapPin, Users, ArrowRight, Search, Loader2, ExternalLink, User, Trophy } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { Navbar } from "@/components/layout/Navbar";
@@ -16,6 +16,8 @@ const Hackathons = () => {
   const [search, setSearch] = useState("");
 
   const { data: events, isLoading, error } = useExternalEvents("hackathon", null);
+
+  const PLACEHOLDER_IMAGE = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80";
 
   useEffect(() => {
     const filterParam = searchParams.get("filter");
@@ -39,15 +41,29 @@ const Hackathons = () => {
     e.target.src = PLACEHOLDER_IMAGE;
   };
 
+  // ✅ HELPER: Get Category (1=Upcoming, 2=Today, 3=Past)
+  const getEventCategory = (date) => {
+    const today = startOfDay(new Date());
+    const eventDay = startOfDay(new Date(date));
+
+    if (eventDay > today) return 1; // Upcoming (Future Date)
+    if (eventDay.getTime() === today.getTime()) return 2; // Today
+    return 3; // Past
+  };
+
   const filteredEvents = events?.filter((event) => {
     const eventDate = new Date(event.date);
     const isDateValid = isValid(eventDate);
+    
+    // Check if event is strictly past (and NOT today)
+    const isStrictlyPast = isDateValid && isPast(eventDate) && !isToday(eventDate);
 
     let computedStatus = event.status;
     if (isDateValid) {
-      if (isPast(eventDate)) {
+      if (isStrictlyPast) {
         computedStatus = 'past';
       } else if (!computedStatus) {
+        // Default to upcoming for Future or Today
         computedStatus = 'upcoming';
       }
     }
@@ -70,6 +86,27 @@ const Hackathons = () => {
       dateStrLong.includes(term);
 
     return matchesStatus && matchesSearch;
+  }).sort((a, b) => {
+      // ✅ SORTING LOGIC
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+
+      const categoryA = getEventCategory(dateA);
+      const categoryB = getEventCategory(dateB);
+
+      // 1. Sort by Category Priority (Upcoming -> Today -> Past)
+      if (categoryA !== categoryB) {
+        return categoryA - categoryB;
+      }
+
+      // 2. Tie-breakers
+      if (categoryA === 3) {
+         // Past: Descending (Most recent past first)
+         return dateB - dateA;
+      } else {
+         // Upcoming/Today: Ascending (Nearest first)
+         return dateA - dateB;
+      }
   });
 
   const getPageTitle = () => {
@@ -140,19 +177,26 @@ const Hackathons = () => {
               {filteredEvents?.map((event, index) => {
                 const eventDateObj = new Date(event.date);
                 const isDateValid = isValid(eventDateObj);
+                const isEventToday = isToday(eventDateObj);
 
+                // ✅ Determine Display Status
                 let displayStatus = event.status;
                 if (isDateValid) {
-                  displayStatus = isPast(eventDateObj) ? 'past' : 'upcoming';
+                  if (isEventToday) {
+                    displayStatus = 'Today';
+                  } else {
+                    displayStatus = isPast(eventDateObj) ? 'Past' : 'Upcoming';
+                  }
                 }
 
                 const displayImage = getImageUrl(event.imageUrl);
 
                 return (
+                  // ✅ FIXED: Removed 'block' to resolve CSS conflict with 'flex'
                   <Link
                     key={event._id}
                     to={`/external-events/${event._id}`}
-                    className="group glass rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-500 h-full flex flex-col block"
+                    className="group glass rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-500 h-full flex flex-col"
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
                     <div className="relative h-48 overflow-hidden bg-gray-200 shrink-0">
@@ -167,11 +211,16 @@ const Hackathons = () => {
                           <Trophy className="w-3 h-3" />
                           Hackathon
                         </span>
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${
-                          displayStatus === "upcoming"
-                            ? "bg-secondary text-secondary-foreground"
-                            : "bg-muted text-muted-foreground"
-                        }`}>
+                        
+                        {/* ✅ Status Badge with Colors */}
+                        <span className={cn(
+                          "px-3 py-1 rounded-full text-xs font-semibold uppercase",
+                          displayStatus === "Upcoming" && "bg-blue-600 text-white",
+                          displayStatus === "Today" && "bg-green-600 text-white animate-pulse",
+                          displayStatus === "Past" && "bg-muted text-foreground",
+                          // Fallback
+                          !["Upcoming", "Today", "Past"].includes(displayStatus) && "bg-secondary text-secondary-foreground"
+                        )}>
                           {displayStatus}
                         </span>
                       </div>
@@ -207,9 +256,12 @@ const Hackathons = () => {
                       <Button
                         asChild
                         className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all"
-                        onClick={(e) => e.preventDefault()}
+                        onClick={(e) => e.stopPropagation()} // Prevent triggering Link on button click if needed, though 'asChild' usually handles this differently.
+                        // Actually, since the whole card is a Link, nested interactive elements can be tricky.
+                        // For external link, it's better to stop propagation or just use the card link.
+                        // However, keeping your structure:
                       >
-                        <a href={event.link} target="_blank" rel="noopener noreferrer">
+                        <a href={event.link} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
                           Join Hackathon
                           <ExternalLink className="w-4 h-4 ml-2" />
                         </a>

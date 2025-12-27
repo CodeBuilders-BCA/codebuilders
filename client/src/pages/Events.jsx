@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Link, useSearchParams } from "react-router-dom"; 
-import { format, isValid, isPast } from "date-fns"; 
+import { format, isValid, isPast, isToday, startOfDay } from "date-fns"; 
 import { Calendar, MapPin, Users, ArrowRight, Search, Loader2 } from "lucide-react";
 import { Helmet } from "react-helmet-async"; 
 import { Navbar } from "@/components/layout/Navbar";
@@ -61,42 +61,76 @@ const Events = () => {
     e.target.src = PLACEHOLDER_IMAGE;
   };
 
-  const filteredEvents = events.filter((event) => {
-    const eventDate = new Date(event.dateTime || event.date);
-    const isDateValid = isValid(eventDate);
-    
-    let computedStatus = event.status;
-    if (isDateValid) {
-        if (isPast(eventDate)) {
+  // ✅ HELPER: Get Category (1=Upcoming, 2=Today, 3=Past)
+  const getEventCategory = (date) => {
+    const today = startOfDay(new Date());
+    const eventDay = startOfDay(new Date(date));
+
+    if (eventDay > today) return 1; // Upcoming (Future Date)
+    if (eventDay.getTime() === today.getTime()) return 2; // Today
+    return 3; // Past
+  };
+
+  const filteredEvents = events
+    .filter((event) => {
+      const eventDate = new Date(event.dateTime || event.date);
+      const isDateValid = isValid(eventDate);
+      
+      let computedStatus = event.status;
+      if (isDateValid) {
+        if (isPast(eventDate) && !isToday(eventDate)) {
+             // If strictly past and NOT today -> Past
             computedStatus = 'past';
         } else if (!computedStatus) {
+            // Future or Today -> Upcoming
             computedStatus = 'upcoming';
         }
-    }
-    if (!computedStatus) computedStatus = 'upcoming';
+      }
+      if (!computedStatus) computedStatus = 'upcoming';
 
-    const matchesStatus = filter === "all" ? true : computedStatus === filter;
+      const matchesStatus = filter === "all" ? true : computedStatus === filter;
 
-    if (!search) return matchesStatus;
+      if (!search) return matchesStatus;
 
-    const term = search.toLowerCase();
-    const dateStrShort = isDateValid ? format(eventDate, "MMM d yyyy").toLowerCase() : "";
-    const dateStrLong = isDateValid ? format(eventDate, "MMMM d yyyy").toLowerCase() : "";
+      const term = search.toLowerCase();
+      const dateStrShort = isDateValid ? format(eventDate, "MMM d yyyy").toLowerCase() : "";
+      const dateStrLong = isDateValid ? format(eventDate, "MMMM d yyyy").toLowerCase() : "";
 
-    const matchesSearch =
-      event.title?.toLowerCase().includes(term) ||          
-      event.venue?.toLowerCase().includes(term) ||          
-      event.description?.toLowerCase().includes(term) ||    
-      dateStrShort.includes(term) ||                        
-      dateStrLong.includes(term);                           
+      const matchesSearch =
+        event.title?.toLowerCase().includes(term) ||          
+        event.venue?.toLowerCase().includes(term) ||          
+        event.description?.toLowerCase().includes(term) ||    
+        dateStrShort.includes(term) ||                        
+        dateStrLong.includes(term);                           
 
-    return matchesStatus && matchesSearch;
-  });
+      return matchesStatus && matchesSearch;
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.dateTime || a.date);
+      const dateB = new Date(b.dateTime || b.date);
+
+      const categoryA = getEventCategory(dateA);
+      const categoryB = getEventCategory(dateB);
+
+      // 1. Sort by Category Priority (Upcoming -> Today -> Past)
+      if (categoryA !== categoryB) {
+        return categoryA - categoryB;
+      }
+
+      // 2. Tie-breakers within the same category
+      if (categoryA === 3) {
+         // If both are PAST, show most recent first (Descending)
+         return dateB - dateA;
+      } else {
+         // If both are UPCOMING or TODAY, show nearest time first (Ascending)
+         return dateA - dateB;
+      }
+    });
 
   const getPageTitle = () => {
       if (filter === "upcoming") return "Upcoming";
       if (filter === "past") return "Past";
-      return "Upcoming & Past";
+      return "All";
   };
 
   return (
@@ -164,16 +198,20 @@ const Events = () => {
                 const rawDate = event.dateTime || event.date;
                 const eventDateObj = new Date(rawDate);
                 const isDateValid = isValid(eventDateObj);
+                const isEventToday = isToday(eventDateObj);
                 
                 let displayStatus = event.status;
                 if (isDateValid) {
-                   displayStatus = isPast(eventDateObj) ? 'past' : 'upcoming';
+                   if (isEventToday) {
+                     displayStatus = 'Today';
+                   } else {
+                     displayStatus = isPast(eventDateObj) ? 'Past' : 'Upcoming';
+                   }
                 }
 
                 const displayImage = getImageUrl(event.imageUrl || event.image_url);
 
                 return (
-                  // ✅ FIXED: Removed 'block' to fix CSS conflict. 'flex' implies block-level container.
                   <Link
                     to={`/events/${event._id}`}
                     key={event._id}
@@ -188,11 +226,12 @@ const Events = () => {
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
                       <div className="absolute top-4 right-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${
-                          displayStatus === "upcoming" 
-                            ? "bg-primary text-primary-foreground" 
-                            : "bg-muted text-foreground"
-                        }`}>
+                        <span className={cn(
+                          "px-3 py-1 rounded-full text-xs font-semibold uppercase",
+                          displayStatus === "Upcoming" && "bg-blue-600 text-white",
+                          displayStatus === "Today" && "bg-green-600 text-white animate-pulse",
+                          displayStatus === "Past" && "bg-muted text-foreground"
+                        )}>
                           {displayStatus || 'Event'}
                         </span>
                       </div>
@@ -225,11 +264,11 @@ const Events = () => {
 
                       <div 
                         className={cn(
-                          buttonVariants({ variant: displayStatus === "upcoming" ? "outline" : "secondary" }),
+                          buttonVariants({ variant: displayStatus === "Past" ? "secondary" : "outline" }),
                           "w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all"
                         )}
                       >
-                        {displayStatus === "upcoming" ? "Register Now" : "View Details"}
+                        {displayStatus === "Past" ? "View Details" : "Register Now"}
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </div>
                       

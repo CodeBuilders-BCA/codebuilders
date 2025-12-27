@@ -103,6 +103,26 @@ class ApiClient {
   }
 
   // ---------------------------------------------------------------------------
+  // 👤 USERS MANAGEMENT (ADMIN) - ✅ NEW ADDED
+  // ---------------------------------------------------------------------------
+
+  async getAllUsers() {
+    return this.request('/users'); 
+  }
+
+  async createUser(userData) {
+    return this.request('/users', { method: 'POST', body: JSON.stringify(userData) });
+  }
+
+  async updateUser(id, userData) {
+    return this.request(`/users/${id}`, { method: 'PUT', body: JSON.stringify(userData) });
+  }
+
+  async deleteUser(id) {
+    return this.request(`/users/${id}`, { method: 'DELETE' });
+  }
+  
+  // ---------------------------------------------------------------------------
   // 📅 EVENTS MANAGEMENT
   // ---------------------------------------------------------------------------
   
@@ -116,6 +136,7 @@ class ApiClient {
   }
 
   async createEvent(eventData) {
+    // Check if data is FormData (for image upload) or JSON
     const body = eventData instanceof FormData ? eventData : JSON.stringify(eventData);
     return this.request('/events', { method: 'POST', body });
   }
@@ -166,7 +187,7 @@ class ApiClient {
   }
 
   // ---------------------------------------------------------------------------
-  // 🎟️ REGISTRATIONS (✅ UPDATED)
+  // 🎟️ REGISTRATIONS
   // ---------------------------------------------------------------------------
   
   // 1. Admin: Get ALL registrations with pagination/search
@@ -192,8 +213,7 @@ class ApiClient {
     return this.request('/registrations/recent');
   }
 
-  // 3. ✅ NEW: Volunteer/Admin - Get registrations for a SPECIFIC event
-  // This is what the Volunteer Panel uses
+  // 3. Volunteer/Admin - Get registrations for a SPECIFIC event
   async getEventRegistrations(eventId) {
     return this.request(`/registrations/event/${eventId}`);
   }
@@ -231,28 +251,7 @@ class ApiClient {
   }
 
   // ---------------------------------------------------------------------------
-  // 🖼️ MEMORIES / GALLERY
-  // ---------------------------------------------------------------------------
-  
-  async getEventMemories(eventId) {
-    return this.request(`/events/${eventId}/memories`);
-  }
-
-  async uploadEventMemories(eventId, formData) {
-    return this.request(`/events/${eventId}/memories`, {
-      method: 'POST',
-      body: formData
-    });
-  }
-
-  async deleteEventMemory(eventId, imageId) {
-    return this.request(`/events/${eventId}/memories/${imageId}`, {
-      method: 'DELETE'
-    });
-  }
-
-  // ---------------------------------------------------------------------------
-  // 🌍 EXTERNAL EVENTS
+  // 🌍 EXTERNAL EVENTS (Workshops, Hackathons, etc.)
   // ---------------------------------------------------------------------------
 
   async getExternalEvents(type = null, status = null) {
@@ -267,12 +266,16 @@ class ApiClient {
     return this.request(`/external-events/${id}`);
   }
 
+  // ✅ UPDATED: Supports FormData (for Image Uploads)
   async createExternalEvent(data) {
-    return this.request('/external-events', { method: 'POST', body: JSON.stringify(data) });
+    const body = data instanceof FormData ? data : JSON.stringify(data);
+    return this.request('/external-events', { method: 'POST', body });
   }
 
+  // ✅ UPDATED: Supports FormData
   async updateExternalEvent(id, data) {
-    return this.request(`/external-events/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+    const body = data instanceof FormData ? data : JSON.stringify(data);
+    return this.request(`/external-events/${id}`, { method: 'PUT', body });
   }
 
   async deleteExternalEvent(id) {

@@ -1,15 +1,12 @@
 const Event = require("../models/Event");
 const cloudinary = require("cloudinary").v2;
 
-// 1️⃣ Cloudinary Config (Only needed here for Deletion logic)
+// Cloudinary Config (Needed if we implement cover image deletion later)
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-
-// ❌ Removed: streamifier and uploadToCloudinary helper function
-// (Middleware now handles uploads automatically)
 
 // @desc    Create an event
 // @route   POST /api/events
@@ -17,15 +14,15 @@ const createEvent = async (req, res) => {
   try {
     const {
       title, description, fullDescription, venue, dateTime,
-      maxAttendees, status, isRegistrationEnabled, mapUrl
+      maxAttendees, status, isRegistrationEnabled, mapUrl,
+      memoriesUrl 
     } = req.body;
 
     let imageUrl = null;
 
-    // ✅ UPDATED LOGIC: Get URL directly from Middleware
-    // Since we use upload.fields(), access via req.files['fieldname']
+    // Handle Cover Image Upload
     if (req.files && req.files.image && req.files.image.length > 0) {
-       imageUrl = req.files.image[0].path; // Cloudinary URL
+       imageUrl = req.files.image[0].path; 
     }
 
     const event = await Event.create({
@@ -36,10 +33,11 @@ const createEvent = async (req, res) => {
       dateTime,
       maxAttendees,
       status,
-      imageUrl, // Full Cloudinary URL
+      imageUrl, 
       mapUrl,
+      // ✅ Save External Album Link
+      memoriesUrl: memoriesUrl || "", 
       isRegistrationEnabled: isRegistrationEnabled === "true",
-      memories: []
     });
 
     res.status(201).json(event);
@@ -65,13 +63,15 @@ const updateEvent = async (req, res) => {
       event.maxAttendees = req.body.maxAttendees || event.maxAttendees;
       event.status = req.body.status || event.status;
       
+      // ✅ Update Memories Link
+      event.memoriesUrl = req.body.memoriesUrl || event.memoriesUrl;
+
       if (req.body.isRegistrationEnabled !== undefined) {
          event.isRegistrationEnabled = req.body.isRegistrationEnabled === "true";
       }
 
-      // ✅ UPDATED LOGIC: Update Image
+      // Update Cover Image if new one provided
       if (req.files && req.files.image && req.files.image.length > 0) {
-        // Optional: Delete old image if needed using cloudinary.uploader.destroy()
         event.imageUrl = req.files.image[0].path;
       }
       
@@ -131,84 +131,10 @@ const deleteEvent = async (req, res) => {
   }
 };
 
-// ---------------------------------------------------------
-// 👇 MEMORIES FUNCTIONS (UPDATED)
-// ---------------------------------------------------------
-
-const getEventMemories = async (req, res) => {
-  try {
-    const event = await Event.findById(req.params.id).select('memories');
-    if (!event) return res.status(404).json({ message: "Event not found" });
-    res.json(event.memories);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-const uploadEventMemories = async (req, res) => {
-  try {
-    // ✅ With upload.array(), req.files is an array of file objects
-    // Middleware has already uploaded them to Cloudinary
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ message: "No files uploaded" });
-    }
-
-    const event = await Event.findById(req.params.id);
-    if (!event) return res.status(404).json({ message: "Event not found" });
-
-    // ✅ Simply map the results from req.files
-    const newMemories = req.files.map(file => ({
-      url: file.path,       // Direct Cloudinary URL
-      publicId: file.filename // Direct Cloudinary Public ID
-    }));
-
-    event.memories.push(...newMemories);
-    await event.save();
-
-    res.status(200).json(event.memories);
-  } catch (error) {
-    console.error("Upload Error:", error);
-    res.status(500).json({ message: error.message });
-  }
-};
-
-const deleteEventMemory = async (req, res) => {
-  try {
-    const { id, imageId } = req.params;
-    const event = await Event.findById(id);
-
-    if (!event) return res.status(404).json({ message: "Event not found" });
-
-    const memory = event.memories.id(imageId);
-    if (!memory) return res.status(404).json({ message: "Image not found" });
-
-    // ✅ Cloudinary Delete (Still needed here manually)
-    if (memory.publicId) {
-       try {
-         await cloudinary.uploader.destroy(memory.publicId);
-       } catch (err) {
-         console.error("Cloudinary Delete Error:", err);
-         // Continue to delete from DB even if Cloudinary fails
-       }
-    }
-
-    event.memories.pull(imageId);
-    await event.save();
-
-    res.json({ message: "Memory deleted successfully" });
-  } catch (error) {
-    console.error("Delete Memory Error:", error);
-    res.status(500).json({ message: error.message });
-  }
-};
-
 module.exports = { 
   createEvent, 
   updateEvent, 
   getEvents, 
   getEventById, 
-  deleteEvent,
-  getEventMemories,
-  uploadEventMemories,
-  deleteEventMemory
+  deleteEvent
 };

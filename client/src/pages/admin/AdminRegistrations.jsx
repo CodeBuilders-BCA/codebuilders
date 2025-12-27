@@ -9,6 +9,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+// ✅ Added AlertDialog Imports
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { 
   Search, 
   Trash2, 
@@ -36,19 +48,15 @@ export default function AdminRegistrations() {
   const { data: apiResponse, isLoading, isRefetching, refetch } = useQuery({
     queryKey: ['admin-registrations', selectedEvent],
     queryFn: () => {
-        // ✅ FIX: Pass arguments correctly: page=1, search='', limit='all', eventId
-        // If selectedEvent is 'all', pass null or let backend handle 'all' string logic
         const eventIdParam = selectedEvent === 'all' ? null : selectedEvent;
         return apiClient.getAllRegistrations(1, '', 'all', eventIdParam);
     },
     refetchInterval: 5000, 
   });
 
-  // ✅ Extract the array from the new response object { registrations: [...], total: ... }
   const registrations = apiResponse?.registrations || [];
 
   // 3. Search Filter (Client-side)
-  // Since we fetched ALL data, we filter here instantly without reloading
   const filteredRegistrations = registrations.filter(reg => 
     !searchTerm || 
     reg.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -61,7 +69,8 @@ export default function AdminRegistrations() {
     mutationFn: (id) => apiClient.deleteRegistration(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-registrations'] });
-      toast({ title: 'Registration deleted' });
+      // ✅ Updated Toast
+      toast({ title: 'Registration deleted successfully', description: 'The registration record has been removed.' });
     },
     onError: (error) => {
       toast({ variant: 'destructive', title: 'Error', description: error.message });
@@ -119,7 +128,6 @@ export default function AdminRegistrations() {
           </div>
           
           <div className="flex gap-2">
-            {/* Export Button */}
             <Button 
               variant="outline" 
               size="sm" 
@@ -130,7 +138,6 @@ export default function AdminRegistrations() {
               Export CSV
             </Button>
 
-            {/* Manual Refresh Indicator */}
             <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isRefetching}>
               <RefreshCcw className={`w-4 h-4 mr-2 ${isRefetching ? "animate-spin" : ""}`} />
               {isRefetching ? "Updating..." : "Refresh"}
@@ -250,18 +257,39 @@ export default function AdminRegistrations() {
                       
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-muted-foreground hover:text-destructive"
-                            onClick={() => {
-                              if(confirm('Are you sure you want to delete this registration?')) {
-                                deleteMutation.mutate(reg._id)
-                              }
-                            }}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          
+                          {/* ✅ Delete Confirmation Dialog */}
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-muted-foreground hover:text-destructive"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Registration?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete the registration for <strong>{reg.userName}</strong>?
+                                  <br />
+                                  This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteMutation.mutate(reg._id)}
+                                  className="bg-destructive hover:bg-destructive/90"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+
                         </div>
                       </TableCell>
                     </TableRow>

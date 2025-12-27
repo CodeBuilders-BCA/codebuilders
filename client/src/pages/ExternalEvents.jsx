@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { format, isValid, isPast } from "date-fns";
+import { format, isValid, isPast, isToday, startOfDay } from "date-fns";
 import { Calendar, MapPin, Users, ArrowRight, Search, Loader2, ExternalLink, User } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { Navbar } from "@/components/layout/Navbar";
@@ -16,6 +16,8 @@ const ExternalEvents = () => {
   const [search, setSearch] = useState("");
 
   const { data: events, isLoading, error } = useExternalEvents("event", null);
+
+  const PLACEHOLDER_IMAGE = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80";
 
   useEffect(() => {
     const filterParam = searchParams.get("filter");
@@ -39,15 +41,29 @@ const ExternalEvents = () => {
     e.target.src = PLACEHOLDER_IMAGE;
   };
 
+  // ✅ HELPER: Get Category (1=Upcoming, 2=Today, 3=Past)
+  const getEventCategory = (date) => {
+    const today = startOfDay(new Date());
+    const eventDay = startOfDay(new Date(date));
+
+    if (eventDay > today) return 1; // Upcoming (Future Date)
+    if (eventDay.getTime() === today.getTime()) return 2; // Today
+    return 3; // Past
+  };
+
   const filteredEvents = events?.filter((event) => {
     const eventDate = new Date(event.date);
     const isDateValid = isValid(eventDate);
+    
+    // Check if event is strictly past (and NOT today)
+    const isStrictlyPast = isDateValid && isPast(eventDate) && !isToday(eventDate);
 
     let computedStatus = event.status;
     if (isDateValid) {
-      if (isPast(eventDate)) {
+      if (isStrictlyPast) {
         computedStatus = 'past';
       } else if (!computedStatus) {
+        // Default to upcoming for Future or Today
         computedStatus = 'upcoming';
       }
     }
@@ -70,6 +86,27 @@ const ExternalEvents = () => {
       dateStrLong.includes(term);
 
     return matchesStatus && matchesSearch;
+  }).sort((a, b) => {
+      // ✅ SORTING LOGIC
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+
+      const categoryA = getEventCategory(dateA);
+      const categoryB = getEventCategory(dateB);
+
+      // 1. Sort by Category Priority (Upcoming -> Today -> Past)
+      if (categoryA !== categoryB) {
+        return categoryA - categoryB;
+      }
+
+      // 2. Tie-breakers
+      if (categoryA === 3) {
+         // Past: Descending (Most recent past first)
+         return dateB - dateA;
+      } else {
+         // Upcoming/Today: Ascending (Nearest first)
+         return dateA - dateB;
+      }
   });
 
   const getPageTitle = () => {
@@ -140,10 +177,16 @@ const ExternalEvents = () => {
               {filteredEvents?.map((event, index) => {
                 const eventDateObj = new Date(event.date);
                 const isDateValid = isValid(eventDateObj);
+                const isEventToday = isToday(eventDateObj);
 
+                // ✅ Determine Display Status
                 let displayStatus = event.status;
                 if (isDateValid) {
-                  displayStatus = isPast(eventDateObj) ? 'past' : 'upcoming';
+                  if (isEventToday) {
+                    displayStatus = 'Today';
+                  } else {
+                    displayStatus = isPast(eventDateObj) ? 'Past' : 'Upcoming';
+                  }
                 }
 
                 const displayImage = getImageUrl(event.imageUrl);
@@ -152,12 +195,7 @@ const ExternalEvents = () => {
                   <Link
                     key={event._id}
                     to={`/external-events/${event._id}`}
-                    className="group glass rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-500 h-full flex flex-col block"
-                    style={{ animationDelay: `${index * 0.05}s` }}
-                  >
-                  <div
-                    key={event._id}
-                    className="group glass rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-500 h-full flex flex-col block cursor-pointer"
+                    className="group glass rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-500 h-full flex flex-col"
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
                     <div className="relative h-48 overflow-hidden bg-gray-200 shrink-0">
@@ -168,6 +206,7 @@ const ExternalEvents = () => {
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
                       <div className="absolute top-4 right-4 flex gap-2">
+                        {/* Event Type Badge */}
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${
                           event.type === "hackathon"
                             ? "bg-destructive text-destructive-foreground"
@@ -175,11 +214,16 @@ const ExternalEvents = () => {
                         }`}>
                           {event.type}
                         </span>
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${
-                          displayStatus === "upcoming"
-                            ? "bg-secondary text-secondary-foreground"
-                            : "bg-muted text-muted-foreground"
-                        }`}>
+
+                        {/* ✅ Status Badge with Colors */}
+                        <span className={cn(
+                          "px-3 py-1 rounded-full text-xs font-semibold uppercase",
+                          displayStatus === "Upcoming" && "bg-blue-600 text-white",
+                          displayStatus === "Today" && "bg-green-600 text-white animate-pulse",
+                          displayStatus === "Past" && "bg-muted text-foreground",
+                          // Fallback
+                          !["Upcoming", "Today", "Past"].includes(displayStatus) && "bg-secondary text-secondary-foreground"
+                        )}>
                           {displayStatus}
                         </span>
                       </div>
@@ -212,13 +256,16 @@ const ExternalEvents = () => {
                         )}
                       </div>
 
-                      
-                      <Button className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all">
-                        View Details
+                      <div 
+                        className={cn(
+                          buttonVariants({ variant: displayStatus === "Past" ? "secondary" : "default" }),
+                          "w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all"
+                        )}
+                      >
+                        {displayStatus === "Past" ? "View Details" : "View Details"}
                         <ArrowRight className="w-4 h-4 ml-2" />
-                      </Button>
+                      </div>
                     </div>
-                  </div>
                   </Link>
                 );
               })}

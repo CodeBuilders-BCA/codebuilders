@@ -39,24 +39,14 @@ const eventSchema = mongoose.Schema(
     
     // --- Images ---
     imageUrl: {
-      type: String, // Stores Full Cloudinary URL (https://res.cloudinary.com/...)
+      type: String, // Stores Full Cloudinary URL (Cover Photo)
     },
-    
-    // Legacy simple gallery (Keep this if you use it elsewhere, or migrate to memories)
-    galleryImages: [
-      {
-        type: String,
-      },
-    ],
 
-    // Memories Gallery (for the Admin Upload & Memories Page)
-    memories: [
-      {
-        url: { type: String, required: true }, // Full Cloudinary URL
-        publicId: { type: String }, // Cloudinary Public ID (Critical for deletion)
-        uploadedAt: { type: Date, default: Date.now }
-      }
-    ],
+    // ✅ NEW: External Album Link (Google Photos / Drive / etc.)
+    memoriesUrl: {
+      type: String,
+      default: "", 
+    },
     
     // --- Registration Logic ---
     isRegistrationEnabled: {

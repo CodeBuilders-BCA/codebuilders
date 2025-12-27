@@ -6,9 +6,6 @@ const {
   getEvents,
   getEventById,
   deleteEvent,
-  getEventMemories,
-  uploadEventMemories,
-  deleteEventMemory,
 } = require("../controllers/eventController");
 
 const { protect, admin } = require("../middleware/authMiddleware");
@@ -32,20 +29,5 @@ router.route("/:id")
   .get(getEventById)
   .put(protect, admin, uploadFields, updateEvent)
   .delete(protect, admin, deleteEvent);
-
-// --- 📸 Memories / Gallery Routes ---
-
-router.route("/:id/memories")
-  .get(getEventMemories) 
-  .post(
-    protect, 
-    admin, 
-    // ✅ Use the same middleware for array uploads
-    upload.array('images', 10), 
-    uploadEventMemories
-  );
-
-router.route("/:id/memories/:imageId")
-  .delete(protect, admin, deleteEventMemory);
 
 module.exports = router;

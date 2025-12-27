@@ -32,7 +32,7 @@ const EventSidebar = ({
   // 2. Initialize hooks for navigation
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast(); // Ensure toast is accessible here
+  const { toast } = useToast(); 
 
   const handleRegistrationClick = () => {
     // 3. LOGIC: If user is not logged in, send to login page
@@ -40,11 +40,10 @@ const EventSidebar = ({
       toast({
         title: "Login Required",
         description: "Please log in to register for this event.",
-        variant: "default", // or "destructive" if you want it red
+        variant: "default", 
       });
       
       // Navigate to login, passing the current location so you can redirect back later
-      // (You will need to handle `location.state.from` in your Login component)
       navigate("/login", { state: { from: location.pathname } });
       return;
     }
@@ -111,17 +110,17 @@ const EventSidebar = ({
                     ${!event.isRegistrationEnabled
                       ? "bg-muted text-muted-foreground cursor-not-allowed"
                       : !user
-                        ? "bg-secondary hover:bg-secondary/80 text-foreground" // Different style if not logged in
+                        ? "bg-secondary hover:bg-secondary/80 text-foreground" 
                         : "bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 hover:scale-[1.02]"
                     }
                   `}
-                  onClick={handleRegistrationClick} // 4. Use the new handler
+                  onClick={handleRegistrationClick} 
                   disabled={!event.isRegistrationEnabled}
                 >
                   {!event.isRegistrationEnabled
                     ? "Registration Closed"
                     : !user
-                      ? "Login to Register" // Explicit text
+                      ? "Login to Register" 
                       : "Register Now"}
                 </Button>
 
@@ -138,7 +137,6 @@ const EventSidebar = ({
               onSubmit={handleRegister}
               className={`space-y-4 ${!isRegistering ? "hidden" : "block"}`}
             >
-             {/* ... Form inputs remain the same ... */}
               <h4 className="text-lg font-semibold text-center">
                 Complete Your Registration
               </h4>
@@ -224,7 +222,7 @@ const EventSidebar = ({
   );
 };
 
-// ... EventDetail component remains the same ...
+// ... EventDetail component ...
 
 const EventDetail = () => {
   const { id } = useParams();
@@ -235,7 +233,7 @@ const EventDetail = () => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ name: "", email: "", phone: "" });
-  const [selectedImage, setSelectedImage] = useState(null);
+  // Removed selectedImage state as we don't have a modal gallery anymore
 
   const PLACEHOLDER_IMAGE = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&q=80";
 
@@ -252,7 +250,6 @@ const EventDetail = () => {
         });
 
         setUser(res.data);
-        // Only set default form data if not already edited by user (or reset on load)
         setFormData(prev => ({ 
             ...prev,
             name: res.data.name || "", 
@@ -319,47 +316,51 @@ const EventDetail = () => {
 
   const displayImage = event ? getImageUrl(event.imageUrl || event.image_url) : PLACEHOLDER_IMAGE;
 
+  // ✅ Updated handleShare with Fallback logic
   const handleShare = async () => {
     if (!event) return;
     const eventDate = new Date(event.dateTime).toDateString();
     const eventTime = new Date(event.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    const shortDesc = event.description 
+      ? (event.description.length > 100 ? event.description.substring(0, 97) + "..." : event.description) 
+      : "Join us to learn and grow!";
+
     const shareTitle = `🚀 Event Alert: ${event.title}`;
-    const shareText = `🚀 *Event Alert: ${event.title}*\n\nReady to level up? Join us for an exclusive session at CodeBuilders!\n\n📅 *Date:* ${eventDate} at ${eventTime}\n📍 *Venue:* ${event.venue}\n💡 *Topic:* ${event.shortDescription || "Join us to learn and grow!"}\n\n👇 *Register & Details:*`;
+    const shareText = `🚀 *Event Alert: ${event.title}*\n\nReady to level up? Join us for an exclusive session at CodeBuilders!\n\n📅 *Date:* ${eventDate} at ${eventTime}\n📍 *Venue:* ${event.venue}\n💡 *Topic:* ${shortDesc}\n\n👇 *Register & Details:*`;
     const shareUrl = window.location.href;
 
     if (navigator.share) {
       try {
-        if (event.image) {
+        const imgSource = event.image || event.imageUrl || event.image_url;
+        if (imgSource) {
           try {
-            const response = await fetch(event.image);
+            const imgUrl = imgSource; 
+            const response = await fetch(imgUrl + "?t=" + new Date().getTime(), { mode: 'cors' });
             const blob = await response.blob();
             const file = new File([blob], "event-cover.jpg", { type: "image/jpeg" });
-            await navigator.share({ title: shareTitle, text: shareText + "\n" + shareUrl, files: [file] });
-            return;
-          } catch (fileError) { console.warn("Image sharing failed", fileError); }
+
+            await navigator.share({ 
+              title: shareTitle, 
+              text: shareText + "\n" + shareUrl, 
+              files: [file] 
+            });
+            return; 
+
+          } catch (fileError) { 
+            console.warn("Image sharing failed, switching to text-only", fileError); 
+          }
         }
+
         await navigator.share({ title: shareTitle, text: shareText, url: shareUrl });
-      } catch (err) { console.log("Share canceled", err); }
+
+      } catch (err) { 
+        console.log("Share canceled", err); 
+      }
     } else {
       navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
       toast({ title: "Link Copied", description: "Event link copied to clipboard." });
     }
-  };
-
-  const handleDownload = async (imageUrl) => {
-    try {
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = imageUrl.split('/').pop() || 'memory-image.jpg';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      toast({ title: "Download Started", description: "Image saved." });
-    } catch (error) { toast({ variant: "destructive", title: "Download Failed", description: "Could not save image." }); }
   };
 
   const getEmbedUrl = (url) => {
@@ -459,15 +460,25 @@ const EventDetail = () => {
                 </div>
               )}
 
-              {event.memories && event.memories.length > 0 && (
-                <div className="space-y-6 pt-8 border-t border-border">
-                  <div className="flex items-center gap-2"><ImageIcon className="w-6 h-6 text-primary" /><h3 className="text-2xl font-semibold">Event Memories</h3></div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {event.memories.map((memory, idx) => (
-                      <div key={idx} className="group relative aspect-square overflow-hidden rounded-xl bg-muted cursor-pointer border border-border" onClick={() => setSelectedImage(getImageUrl(memory.url || memory))}>
-                        <img src={getImageUrl(memory.url || memory)} alt={`Memory ${idx + 1}`} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
-                      </div>
-                    ))}
+              {/* ✅ NEW: Memories Link Button Section */}
+              {event.memoriesUrl && (
+                <div className="space-y-6 pt-8 border-t border-border mt-8">
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="w-6 h-6 text-primary" />
+                    <h3 className="text-2xl font-semibold">Event Memories</h3>
+                  </div>
+                  
+                  <div className="bg-muted/50 rounded-xl p-6 border border-border text-center">
+                    <p className="text-muted-foreground mb-4">
+                      Check out the photo gallery from this event on our external album!
+                    </p>
+                    
+                    <Button asChild size="lg" className="font-bold gap-2">
+                      <a href={event.memoriesUrl} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="w-4 h-4" />
+                        View Photo Album
+                      </a>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -496,13 +507,7 @@ const EventDetail = () => {
         </div>
       </main>
       <Footer />
-      {selectedImage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedImage(null)}>
-          <button onClick={() => setSelectedImage(null)} className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"><X className="w-8 h-8" /></button>
-          <img src={selectedImage} alt="Preview" className="max-w-[90vw] max-h-[85vh] object-contain rounded-md shadow-2xl" onClick={(e) => e.stopPropagation()} />
-          <button onClick={(e) => { e.stopPropagation(); handleDownload(selectedImage); }} className="absolute bottom-8 right-8 flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-full font-bold shadow-lg transition-transform hover:scale-105"><Download className="w-5 h-5" /> Download</button>
-        </div>
-      )}
+      {/* Deleted the modal code block that was here */}
     </div>
   );
 };

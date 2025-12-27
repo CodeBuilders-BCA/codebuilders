@@ -1,4 +1,4 @@
-import { Calendar, Image, Users, UserCheck, Mic, LogOut, LayoutDashboard, Mail, User, ExternalLink } from 'lucide-react';
+import { Calendar, Image, Users, UserCheck, Mic, LogOut, LayoutDashboard, Mail, User, ExternalLink, UserCheck2 } from 'lucide-react';
 import { NavLink } from 'react-router-dom'; 
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -19,9 +19,9 @@ const menuItems = [
   { title: 'Overview', url: '/admin', icon: LayoutDashboard },
   { title: 'Events', url: '/admin/events', icon: Calendar },
   { title: 'External Events', url: '/admin/external-events', icon: ExternalLink },
-  { title: 'Memories', url: '/admin/memories', icon: Image },
   { title: 'Speakers', url: '/admin/speakers', icon: Mic },
   { title: 'Registrations', url: '/admin/registrations', icon: Users },
+  { title: 'Users', url: '/admin/users', icon: UserCheck2 },
   { title: 'Volunteers', url: '/admin/volunteers', icon: UserCheck },
   { title: 'Messages', url: '/admin/messages', icon: Mail },
 ];
@@ -53,15 +53,7 @@ export function AdminSidebar() {
                       className={({ isActive }) => 
                         `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium w-full transition-all duration-200 text-white ${
                           isActive 
-                            /* Active State: 
-                               - Light: Primary bg, Primary-foreground text
-                               - Dark: Primary bg (bright), Black text (for contrast)
-                            */
                             ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:bg-primary/90" 
-                            /* Inactive State:
-                               - Light: Gray text, hover gray bg
-                               - Dark: Muted text, hover accent bg
-                            */
                             : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                         }`
                       }
