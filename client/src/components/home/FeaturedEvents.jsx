@@ -2,7 +2,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils"; 
 import { Link } from "react-router-dom";
 import { Calendar, MapPin, Users, ArrowRight, Loader2 } from "lucide-react";
-import { format, isValid } from "date-fns"; 
+import { format, isValid, isPast, isToday } from "date-fns"; // ✅ isToday add kiya
 import { useFeaturedEvents } from "@/hooks/useEvents"; 
 
 const apiUrl = import.meta.env.VITE_API_URL;
@@ -10,31 +10,44 @@ const apiUrl = import.meta.env.VITE_API_URL;
 export function FeaturedEvents() {
   const { data: events = [], isLoading } = useFeaturedEvents(3);
 
-  // Fallback Image Constant
+  // Fallback Image
   const PLACEHOLDER_IMAGE = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80";
 
-  // Helper logic to handle Local vs External URLs
   const getImageUrl = (imagePath) => {
-    if (!imagePath) return PLACEHOLDER_IMAGE; // Fallback if null
-
-    // If it's an external link (http/https), return as is
+    if (!imagePath) return PLACEHOLDER_IMAGE; 
     if (imagePath.startsWith("http") || imagePath.startsWith("https")) {
       return imagePath;
     }
-
-    // If it's a local upload, fix slashes and prepend backend URL
     const cleanPath = imagePath.replace(/\\/g, "/");
     const normalizedPath = cleanPath.startsWith("/") ? cleanPath : `/${cleanPath}`;
-
     const baseUrl = apiUrl.replace('/api', '');
     return `${baseUrl}${normalizedPath}`;
   };
 
-  // Fallback for broken images
   const handleImageError = (e) => {
     e.target.src = PLACEHOLDER_IMAGE;
   };
 
+  // ✅ FILTER & SORT LOGIC
+  // Sirf Today aur Future events rakhenge
+  const upcomingEvents = events
+    .filter((event) => {
+        const rawDate = event.dateTime || event.date;
+        const eventDateObj = new Date(rawDate);
+        // Agar date valid hai, aur (Future hai YA Today hai) to true return karo
+        // Note: isPast thoda strict hota hai, isliye isToday alag se check kiya
+        return isValid(eventDateObj) && (!isPast(eventDateObj) || isToday(eventDateObj));
+    })
+    .sort((a, b) => {
+        // Nearest date pehle dikhao
+        const dateA = new Date(a.dateTime || a.date);
+        const dateB = new Date(b.dateTime || b.date);
+        return dateA - dateB; 
+    });
+
+  // Agar loading nahi hai aur events bhi nahi hai, to pura section hide karna hai ya sirf grid?
+  // User ne kaha: "events ke div ko hide karo & view all event vala button dikhao"
+  
   return (
     <section className="py-24 relative">
       <div className="container mx-auto px-4">
@@ -59,21 +72,22 @@ export function FeaturedEvents() {
           </div>
         )}
 
-        {/* Events Grid */}
-        {!isLoading && events.length > 0 && (
+        {/* ✅ Events Grid (Sirf tab dikhega jab upcomingEvents honge) */}
+        {!isLoading && upcomingEvents.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {events.map((event, index) => {
+            {upcomingEvents.map((event, index) => {
               
-              // DATE LOGIC
               const rawDate = event.dateTime || event.date; 
               const eventDateObj = new Date(rawDate);
               const isDateValid = isValid(eventDateObj);
+              
+              // Status Badge Logic
+              const isHappeningToday = isToday(eventDateObj);
+              const displayStatus = isHappeningToday ? "Happening Today" : "Upcoming";
 
-              // Use the helper function here
               const displayImage = getImageUrl(event.imageUrl || event.image_url);
 
               return (
-                // ✅ FIXED: Removed 'block' from className to fix conflict with 'flex'
                 <Link
                   to={`/events/${event._id}`}
                   key={event._id}
@@ -83,19 +97,22 @@ export function FeaturedEvents() {
                   {/* Image Section */}
                   <div className="relative h-48 overflow-hidden shrink-0">
                     <img
-                      src={displayImage} // Using the processed URL
+                      src={displayImage} 
                       alt={event.title}
                       onError={handleImageError} 
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
+                    
+                    {/* ✅ Dynamic Badge */}
                     <div className="absolute top-4 right-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${
-                        event.status === "upcoming" 
-                          ? "bg-primary/90 text-primary-foreground" 
-                          : "bg-muted text-foreground"
-                      }`}>
-                        {event.status}
+                      <span className={cn(
+                        "px-3 py-1 rounded-full text-xs font-semibold uppercase",
+                        isHappeningToday 
+                          ? "bg-green-600 text-white animate-pulse" // Today wala alag highlight
+                          : "bg-primary/90 text-primary-foreground"
+                      )}>
+                        {displayStatus}
                       </span>
                     </div>
                   </div>
@@ -127,14 +144,14 @@ export function FeaturedEvents() {
                       )}
                     </div>
 
-                    {/* ✅ FAKE BUTTON (DIV) */}
+                    {/* Button */}
                     <div 
                       className={cn(
                         buttonVariants({ variant: "outline" }),
                         "w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all"
                       )}
                     >
-                      {event.status === "upcoming" ? "Register Now" : "View Details"}
+                      Register Now
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </div>
                   </div>
@@ -142,15 +159,17 @@ export function FeaturedEvents() {
               );
             })}
           </div>
+        ) : (
+            // ✅ Agar koi upcoming event nahi hai, to Grid hide ho jayega
+            // Aur ye message dikhega (Optional, aap isse hata bhi sakte ho)
+            !isLoading && (
+                <div className="text-center py-8 mb-8">
+                    <p className="text-muted-foreground">No upcoming events scheduled at the moment.</p>
+                </div>
+            )
         )}
 
-        {!isLoading && events.length === 0 && (
-          <div className="text-center py-16">
-            <p className="text-muted-foreground text-lg mb-6">No upcoming events at the moment.</p>
-          </div>
-        )}
-
-        {/* View All Button */}
+        {/* View All Button - Ye hamesha dikhega */}
         <div className="text-center">
           <Link to="/events">
             <Button variant="hero-outline" size="lg">
