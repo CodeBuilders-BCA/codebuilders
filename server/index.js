@@ -45,7 +45,7 @@ app.use(cors({
     "https://codebuildersadmin.vercel.app",
     "https://codebuilders-events.vercel.app",
     "https://codebuilders-admin.vercel.app",
-    "https://www.codebuilders.co.in/",
+    "https://www.codebuilders.co.in",
     // Agar koi aur domain hai to yaha add karein
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
