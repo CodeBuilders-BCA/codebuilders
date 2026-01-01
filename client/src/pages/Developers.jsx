@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 const DEVELOPERS = [
   "Abdus-8747",
   "Jainish-2901",
-  "Abdus-8747",
+  "chavdamayur01",
 ];
 
 const REPO = {

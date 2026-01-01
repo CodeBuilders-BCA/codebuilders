@@ -41,8 +41,8 @@ app.use(cors({
   origin: [
     "http://localhost:5173",
     "http://localhost:5174",                   // Localhost Frontend
-    "https://codebuilders-events.vercel.app",  // Live Frontend (Update karein agar URL alag hai)
-    "https://codebuilders-admin.vercel.app",
+    "https://codebuilders-client.vercel.app",  // Live Frontend (Update karein agar URL alag hai)
+    "https://codebuildersadmin.vercel.app",
     // Agar koi aur domain hai to yaha add karein
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
