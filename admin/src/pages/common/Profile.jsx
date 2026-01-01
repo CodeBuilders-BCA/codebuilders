@@ -82,7 +82,7 @@ export default function Profile() {
     setShowPassword(prev => ({ ...prev, [field]: !prev[field] }));
   };
 
-  const Layout = user?.role === "admin" ? AdminLayout : VolunteerLayout;
+  const Layout = user?.role === "admin" ? AdminLayout : (({ children }) => <>{children}</>);
 
   if (!user) return <div className="p-10 text-center"><Loader2 className="animate-spin mx-auto text-primary" /></div>;
 

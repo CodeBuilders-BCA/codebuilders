@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom"; 
 import { Helmet } from "react-helmet-async";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -12,6 +12,7 @@ import { useExternalEvent } from "@/hooks/useExternalEvents";
 const ExternalEventDetail = () => {
   const { id } = useParams();
   const { toast } = useToast();
+  const location = useLocation(); 
   const { data: event, isLoading, error } = useExternalEvent(id);
 
   const PLACEHOLDER_IMAGE = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&q=80";
@@ -27,7 +28,7 @@ const ExternalEventDetail = () => {
   };
 
   const handleShare = async () => {
-    const shareUrl = window.location.href;
+    const shareUrl = `${window.location.origin}${window.location.pathname}`;
     const shareText = `Check out this ${event?.type}: ${event?.title}`;
 
     if (navigator.share) {
@@ -45,6 +46,11 @@ const ExternalEventDetail = () => {
       toast({ title: "Link Copied", description: "Event link copied to clipboard." });
     }
   };
+
+  // Check if event type is hackathon OR if we passed 'hackathon' state from the previous page
+  const isHackathon = event?.type === 'hackathon' || location.state?.from === 'hackathon';
+  const backLink = isHackathon ? "/hackathons" : "/external-events";
+  const backText = isHackathon ? "Back to Hackathons" : "Back to External Events";
 
   if (isLoading) {
     return (
@@ -65,9 +71,9 @@ const ExternalEventDetail = () => {
         <div className="pt-24 pb-16">
           <div className="container mx-auto px-4 text-center">
             <h1 className="text-2xl font-bold mb-4">Event Not Found</h1>
-            <p className="text-muted-foreground mb-6">The external event you're looking for doesn't exist.</p>
-            <Link to="/external-events">
-              <Button>Back to External Events</Button>
+            <p className="text-muted-foreground mb-6">The content you're looking for doesn't exist.</p>
+            <Link to={backLink}>
+              <Button>{backText}</Button>
             </Link>
           </div>
         </div>
@@ -78,7 +84,6 @@ const ExternalEventDetail = () => {
 
   const eventDateObj = new Date(event.date);
   const isDateValid = isValid(eventDateObj);
-  const isEventOver = isDateValid && isPast(eventDateObj);
   const displayImage = getImageUrl(event.imageUrl);
 
   return (
@@ -92,9 +97,12 @@ const ExternalEventDetail = () => {
       <main className="pt-24 pb-20">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="flex items-center justify-between mb-6">
-            <Link to="/external-events" className="inline-flex items-center text-muted-foreground hover:text-primary transition-colors">
-              <ArrowLeft className="w-4 h-4 mr-2" /> Back to External Events
+            
+            {/* ✅ Dynamic Back Button for Main View */}
+            <Link to={backLink} className="inline-flex items-center text-muted-foreground hover:text-primary transition-colors">
+              <ArrowLeft className="w-4 h-4 mr-2" /> {backText}
             </Link>
+
             <Button variant="outline" size="icon" className="md:hidden rounded-full h-10 w-10 border-border/50 bg-background/50 backdrop-blur-sm" onClick={handleShare}>
               <Share2 className="w-4 h-4" />
             </Button>

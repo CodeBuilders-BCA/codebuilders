@@ -2,8 +2,9 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { HeroSection } from "@/components/home/HeroSection";
 import { FeaturedEvents } from "@/components/home/FeaturedEvents";
-import { SpeakersSection } from "@/components/home/SpeakersSection";
+import { TeamMembersSection } from "@/components/home/TeamMembersSection";
 import { CTASection } from "@/components/home/CTASection";
+import MeetTheCodersCTA  from "@/components/home/MeetTheCodersCTA";
 
 const Index = () => {
   return (
@@ -12,7 +13,8 @@ const Index = () => {
       <main>
         <HeroSection />
         <FeaturedEvents />
-        <SpeakersSection />
+        <MeetTheCodersCTA />
+        <TeamMembersSection />
         <CTASection />
       </main>
       <Footer />

@@ -11,9 +11,6 @@ export default function ForgotPassword() {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // --- REMOVED AUTH CHECK ---
-  // This page is now PUBLIC so anyone can access it to recover their account.
-  
   // --- STATE MANAGEMENT ---
   const [step, setStep] = useState(1); // 1: Email, 2: OTP & Password
   const [loading, setLoading] = useState(false);
@@ -34,7 +31,12 @@ export default function ForgotPassword() {
     return () => clearInterval(interval);
   }, [timer]);
 
-  const formatTime = (seconds) => `${seconds}s`;
+  // ✅ UPDATED: Format time as mm:ss (e.g., 2:59)
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
 
   // --- HANDLERS ---
 
@@ -48,15 +50,12 @@ export default function ForgotPassword() {
 
     setLoading(true);
     try {
-      // The backend should check if email exists. 
-      // If it exists, send OTP. If not, it should throw an error (e.g. 404 Not Found).
       await apiClient.requestPasswordReset(email);
       
       setStep(2);
-      setTimer(60); // Start 60s timer
+      setTimer(180); // ✅ UPDATED: Set timer to 3 minutes (180 seconds)
       toast({ title: "OTP Sent", description: "Please check your inbox for the code." });
     } catch (error) {
-      // Handle "Email not found" error specifically if your API returns a clear message
       const msg = error.message || "Failed to send OTP.";
       
       if (msg.toLowerCase().includes("not found") || msg.toLowerCase().includes("register")) {
@@ -104,7 +103,7 @@ export default function ForgotPassword() {
     setLoading(true);
     try {
       await apiClient.requestPasswordReset(email);
-      setTimer(60);
+      setTimer(180); // ✅ UPDATED: Set timer to 3 minutes (180 seconds)
       toast({ title: "OTP Resent", description: "A new code has been sent to your email." });
     } catch (error) {
       toast({ variant: "destructive", title: "Error", description: "Could not resend OTP." });

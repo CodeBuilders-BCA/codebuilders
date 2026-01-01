@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const speakerSchema = mongoose.Schema(
+const TeamMemberSchema = mongoose.Schema(
   {
     name: { type: String, required: true },
     role: { type: String, required: true }, // e.g., "Senior Engineer @ Google"
@@ -18,4 +18,4 @@ const speakerSchema = mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Speaker", speakerSchema);
+module.exports = mongoose.model("TeamMember", TeamMemberSchema);

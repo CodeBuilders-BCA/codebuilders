@@ -7,8 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
-const Speakers = () => {
-  const [speakers, setSpeakers] = useState([]);
+const TeamMembers = () => {
+  const [teamMembers, setTeamMembers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -29,19 +29,19 @@ const Speakers = () => {
     e.target.src = PLACEHOLDER_IMAGE;
   };
 
-  // Fetch Speakers from Backend
+  // Fetch Team Members from Backend
   useEffect(() => {
-    const fetchSpeakers = async () => {
+    const fetchTeamMembers = async () => {
       try {
-        const res = await axios.get(`${apiUrl}/speakers`);
-        setSpeakers(res.data);
+        const res = await axios.get(`${apiUrl}/team-members`);
+        setTeamMembers(res.data);
       } catch (err) {
         setError(err.message);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchSpeakers();
+    fetchTeamMembers();
   }, []);
 
   return (
@@ -53,14 +53,13 @@ const Speakers = () => {
           {/* Header */}
           <div className="text-center mb-16">
             <span className="text-primary font-mono text-sm tracking-wider uppercase">
-              // Industry Experts
+              // The Minds Behind the Magic
             </span>
             <h1 className="text-4xl md:text-6xl font-bold mt-4 mb-6">
-              Meet Our <span className="text-primary">Speakers</span>
+              Meet Our <span className="text-primary">Team Members</span>
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Learn from industry leaders who bring decades of combined experience 
-              and cutting-edge insights to every session.
+              Our dedicated team members are the driving force behind our success. Get to know the people who make it all happen!
             </p>
           </div>
 
@@ -92,18 +91,18 @@ const Speakers = () => {
           )}
 
           {/* Empty State */}
-          {!isLoading && !error && speakers?.length === 0 && (
+          {!isLoading && !error && teamMembers?.length === 0 && (
             <div className="text-center py-16">
-              <p className="text-muted-foreground">No speakers available yet. Check back soon!</p>
+              <p className="text-muted-foreground">No team members available yet. Check back soon!</p>
             </div>
           )}
 
-          {/* Speakers Grid */}
-          {!isLoading && speakers && speakers.length > 0 && (
+          {/* Team Members Grid */}
+          {!isLoading && teamMembers && teamMembers.length > 0 && (
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {speakers.map((speaker, index) => (
+              {teamMembers.map((teamMember, index) => (
                 <div
-                  key={speaker._id}
+                  key={teamMember._id}
                   className="group glass rounded-2xl p-6 hover:border-primary/50 transition-all duration-500 animate-fade-in"
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
@@ -111,8 +110,8 @@ const Speakers = () => {
                   <div className="relative mb-6 mx-auto w-32 h-32">
                     <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-cyan-400 p-[2px] group-hover:shadow-lg group-hover:shadow-primary/30 transition-all duration-300">
                       <img
-                        src={getImageUrl(speaker.imageUrl)}
-                        alt={speaker.name}
+                        src={getImageUrl(teamMember.imageUrl)}
+                        alt={teamMember.name}
                         onError={handleImageError}
                         className="w-full h-full object-cover rounded-full"
                       />
@@ -122,25 +121,25 @@ const Speakers = () => {
                   {/* Info */}
                   <div className="text-center">
                     <h3 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors">
-                      {speaker.name}
+                      {teamMember.name}
                     </h3>
                     <p className="text-muted-foreground text-sm mb-2">
-                      {speaker.role}
+                      {teamMember.role}
                     </p>
                     <p className="text-primary text-xs font-mono mb-4">
-                      {speaker.specialty}
+                      {teamMember.specialty}
                     </p>
                     <p className="text-muted-foreground text-sm mb-6 line-clamp-3">
-                      {speaker.bio}
+                      {teamMember.bio}
                     </p>
 
                     {/* 👇 Social Links (Using flattened fields) */}
                     <div className="flex justify-center gap-3">
                       
                       {/* WhatsApp */}
-                      {speaker.whatsappNumber && (
+                      {teamMember.whatsappNumber && (
                         <a 
-                          href={`https://wa.me/${speaker.whatsappNumber.replace(/\D/g,'')}`}
+                          href={`https://wa.me/${teamMember.whatsappNumber.replace(/\D/g,'')}`}
                           target="_blank" 
                           rel="noopener noreferrer" 
                           className="p-2 rounded-lg bg-secondary text-muted-foreground hover:text-green-500 hover:bg-secondary/80 transition-colors"
@@ -150,9 +149,9 @@ const Speakers = () => {
                       )}
 
                       {/* GitHub */}
-                      {speaker.githubUrl && (
+                      {teamMember.githubUrl && (
                         <a 
-                          href={speaker.githubUrl} 
+                          href={teamMember.githubUrl} 
                           target="_blank" 
                           rel="noopener noreferrer" 
                           className="p-2 rounded-lg bg-secondary text-muted-foreground hover:text-primary hover:bg-secondary/80 transition-colors"
@@ -162,9 +161,9 @@ const Speakers = () => {
                       )}
 
                       {/* LinkedIn */}
-                      {speaker.linkedinUrl && (
+                      {teamMember.linkedinUrl && (
                         <a 
-                          href={speaker.linkedinUrl} 
+                          href={teamMember.linkedinUrl} 
                           target="_blank" 
                           rel="noopener noreferrer" 
                           className="p-2 rounded-lg bg-secondary text-muted-foreground hover:text-blue-500 hover:bg-secondary/80 transition-colors"
@@ -186,4 +185,4 @@ const Speakers = () => {
   );
 };
 
-export default Speakers;
+export default TeamMembers;

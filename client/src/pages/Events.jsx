@@ -61,14 +61,13 @@ const Events = () => {
     e.target.src = PLACEHOLDER_IMAGE;
   };
 
-  // ✅ HELPER: Get Category (1=Upcoming, 2=Today, 3=Past)
   const getEventCategory = (date) => {
     const today = startOfDay(new Date());
     const eventDay = startOfDay(new Date(date));
 
-    if (eventDay > today) return 1; // Upcoming (Future Date)
-    if (eventDay.getTime() === today.getTime()) return 2; // Today
-    return 3; // Past
+    if (eventDay > today) return 1; 
+    if (eventDay.getTime() === today.getTime()) return 2; 
+    return 3; 
   };
 
   const filteredEvents = events
@@ -79,10 +78,8 @@ const Events = () => {
       let computedStatus = event.status;
       if (isDateValid) {
         if (isPast(eventDate) && !isToday(eventDate)) {
-             // If strictly past and NOT today -> Past
             computedStatus = 'past';
         } else if (!computedStatus) {
-            // Future or Today -> Upcoming
             computedStatus = 'upcoming';
         }
       }
@@ -112,17 +109,13 @@ const Events = () => {
       const categoryA = getEventCategory(dateA);
       const categoryB = getEventCategory(dateB);
 
-      // 1. Sort by Category Priority (Upcoming -> Today -> Past)
       if (categoryA !== categoryB) {
         return categoryA - categoryB;
       }
 
-      // 2. Tie-breakers within the same category
       if (categoryA === 3) {
-         // If both are PAST, show most recent first (Descending)
          return dateB - dateA;
       } else {
-         // If both are UPCOMING or TODAY, show nearest time first (Ascending)
          return dateA - dateB;
       }
     });
@@ -144,11 +137,11 @@ const Events = () => {
       <main className="pt-24 pb-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <span className="text-primary font-mono text-sm tracking-wider uppercase">
+            <span className="text-blue-600 font-mono text-sm tracking-wider uppercase">
               // Discover Events
             </span>
             <h1 className="text-4xl md:text-6xl font-bold mt-4 mb-6">
-              {getPageTitle()} <span className="text-primary">Code Builders Events</span>
+              {getPageTitle()} <span className="text-blue-600">Code Builders Events</span>
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               Find the perfect event to level up your skills and connect with 
@@ -164,7 +157,7 @@ const Events = () => {
                 placeholder="Search by name, venue, date..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 rounded-lg bg-secondary border border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
+                className="w-full pl-10 pr-4 py-3 rounded-lg bg-secondary border border-border focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 transition-colors"
               />
             </div>
 
@@ -175,7 +168,7 @@ const Events = () => {
                   onClick={() => handleFilterChange(tab)}
                   className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                     filter === tab
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-blue-600 text-white"
                       : "bg-secondary text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -187,7 +180,7 @@ const Events = () => {
 
           {isLoading && (
             <div className="flex justify-center py-16">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
             </div>
           )}
 
@@ -199,15 +192,21 @@ const Events = () => {
                 const eventDateObj = new Date(rawDate);
                 const isDateValid = isValid(eventDateObj);
                 const isEventToday = isToday(eventDateObj);
+                const isEventPast = isPast(eventDateObj); 
                 
                 let displayStatus = event.status;
                 if (isDateValid) {
                    if (isEventToday) {
                      displayStatus = 'Today';
                    } else {
-                     displayStatus = isPast(eventDateObj) ? 'Past' : 'Upcoming';
+                     displayStatus = isEventPast ? 'Past' : 'Upcoming';
                    }
                 }
+
+                const isPastEvent = displayStatus === 'Past';
+                
+                // ✅ UPDATED: Added dark:text-black logic
+                const buttonClasses = "bg-blue-600 text-white dark:text-black hover:bg-blue-700 shadow-md shadow-blue-500/20";
 
                 const displayImage = getImageUrl(event.imageUrl || event.image_url);
 
@@ -215,7 +214,7 @@ const Events = () => {
                   <Link
                     to={`/events/${event._id}`}
                     key={event._id}
-                    className="group glass rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-500 h-full flex flex-col"
+                    className="group glass rounded-2xl overflow-hidden hover:border-blue-500/50 transition-all duration-500 h-full flex flex-col"
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
                     <div className="relative h-48 overflow-hidden bg-gray-200 shrink-0">
@@ -238,7 +237,7 @@ const Events = () => {
                     </div>
 
                     <div className="p-6 flex flex-col flex-grow">
-                      <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors line-clamp-1">
+                      <h3 className="text-xl font-bold mb-2 group-hover:text-blue-600 transition-colors line-clamp-1">
                         {event.title}
                       </h3>
                       <p className="text-muted-foreground text-sm mb-4 line-clamp-2 flex-grow">
@@ -247,28 +246,30 @@ const Events = () => {
 
                       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-6">
                         <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4 text-primary" />
+                          <Calendar className="w-4 h-4 text-blue-600" />
                           {isDateValid ? format(eventDateObj, "MMM d, yyyy") : "TBA"}
                         </div>
                         <div className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4 text-primary" />
+                          <MapPin className="w-4 h-4 text-blue-600" />
                           <span className="truncate max-w-[100px]">{event.venue}</span>
                         </div>
                         {(event.max_attendees || event.maxAttendees) && (
                           <div className="flex items-center gap-1">
-                            <Users className="w-4 h-4 text-primary" />
+                            <Users className="w-4 h-4 text-blue-600" />
                             {event.maxAttendees || event.max_attendees}+ spots
                           </div>
                         )}
                       </div>
 
+                      {/* ✅ FORCE BLUE BUTTON */}
                       <div 
                         className={cn(
-                          buttonVariants({ variant: displayStatus === "Past" ? "secondary" : "outline" }),
-                          "w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all"
+                          "h-10 px-4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+                          "w-full",
+                          buttonClasses // Now handles dark/light text color
                         )}
                       >
-                        {displayStatus === "Past" ? "View Details" : "Register Now"}
+                        {isPastEvent ? "View Details" : "Register Now"}
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </div>
                       
@@ -283,7 +284,7 @@ const Events = () => {
             <div className="text-center py-16">
               <p className="text-muted-foreground text-lg">No events found matching your criteria.</p>
               {filter !== 'all' && (
-                  <Button variant="link" onClick={() => handleFilterChange('all')}>View All Events</Button>
+                  <Button variant="link" onClick={() => handleFilterChange('all')} className="text-blue-600">View All Events</Button>
               )}
             </div>
           )}

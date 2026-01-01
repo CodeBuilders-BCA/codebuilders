@@ -19,7 +19,7 @@ const menuItems = [
   { title: 'Overview', url: '/admin', icon: LayoutDashboard },
   { title: 'Events', url: '/admin/events', icon: Calendar },
   { title: 'External Events', url: '/admin/external-events', icon: ExternalLink },
-  { title: 'Speakers', url: '/admin/speakers', icon: Mic },
+  { title: 'Team Members', url: '/admin/team-members', icon: Mic },
   { title: 'Registrations', url: '/admin/registrations', icon: Users },
   { title: 'Users', url: '/admin/users', icon: UserCheck2 },
   { title: 'Volunteers', url: '/admin/volunteers', icon: UserCheck },

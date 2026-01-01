@@ -78,8 +78,8 @@ export function VolunteerLayout({ children }) {
             onClick={handleSignOut}
             className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-2 ml-1"
           >
-            <LogOut className="w-5 h-5" />
-            <span className="hidden sm:inline font-medium">Sign Out</span>
+            <LogOut className="w-4 h-5" />
+            <span className="hidden sm:inline font-medium text-destructive">Sign Out</span>
           </Button>
         </div>
       </header>

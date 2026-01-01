@@ -73,6 +73,7 @@ const getUserProfile = async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      phone: user.phone,
       isAdmin: user.role === 'admin',
       isVolunteer: user.role === 'volunteer'
     });
@@ -90,6 +91,8 @@ const updateProfile = async (req, res) => {
 
     if (user) {
       user.name = req.body.name || user.name;
+      user.email = req.body.email || user.email;
+      user.phone = req.body.phone || user.phone;
       const updatedUser = await user.save();
 
       res.json({

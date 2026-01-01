@@ -5,11 +5,12 @@ export function Footer() {
   // Defined links array to easily handle the Login path
   const quickLinks = [
     { label: "Events", path: "/events" },
-    { label: "Speakers", path: "/speakers" },
+    { label: "Team Members", path: "/team-members" },
     { label: "Memories", path: "/memories" },
     { label: "About", path: "/about" },
+    { label: "Developers", path: "/developers" },
     { label: "Contact", path: "/contact" },
-    { label: "Member Login", path: "/auth" }, // 👈 Added Login Link
+    { label: "Member Login", path: "/auth" },
   ];
 
   return (
@@ -94,20 +95,20 @@ export function Footer() {
               </li>
               <li>
                 <a 
-                  href="tel:+917016798029" 
-                  className="flex items-center gap-2 hover:text-foreground hover:underline transition-colors"
-                >
-                  <Phone className="w-4 h-4" />
-                  +91 70167 98029
-                </a>
-              </li>
-              <li>
-                <a 
                   href="tel:+919773272749" 
                   className="flex items-center gap-2 hover:text-foreground hover:underline transition-colors"
                 >
                   <Phone className="w-4 h-4" />
                   +91 97732 72749
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="tel:+917016798029" 
+                  className="flex items-center gap-2 hover:text-foreground hover:underline transition-colors"
+                >
+                  <Phone className="w-4 h-4" />
+                  +91 70167 98029
                 </a>
               </li>
 

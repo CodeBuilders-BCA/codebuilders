@@ -34,9 +34,7 @@ const registerForEvent = async (req, res) => {
     // 4. Generate PDF Ticket
     let pdfBuffer;
     try {
-      console.log("Generating PDF for:", userName); 
       pdfBuffer = await generateTicketPDF(registration, event);
-      console.log("PDF Generated successfully. Size:", pdfBuffer.length); 
     } catch (pdfError) {
       console.error("❌ PDF Generation Failed:", pdfError);
     }
@@ -95,7 +93,6 @@ const registerForEvent = async (req, res) => {
           },
         ] : [],
       });
-      console.log(`Email sent to ${userEmail}`);
     } catch (emailErr) {
       console.error("Email Sending Failed:", emailErr);
       // We don't block the response here, user is still registered
@@ -141,10 +138,6 @@ const getEventRegistrations = async (req, res) => {
 // @route   GET /api/registrations
 const getAllRegistrations = async (req, res) => {
   try {
-    // 👇 DEBUG LOGS: Check your terminal to see what the backend receives
-    console.log("🔔 API Call: getAllRegistrations");
-    console.log("📥 Query Params:", req.query);
-
     const page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
     const search = req.query.search || "";
@@ -167,11 +160,9 @@ const getAllRegistrations = async (req, res) => {
       queryObj.eventId = eventId;
     }
 
-    console.log("🔍 Applied Database Filters:", queryObj);
 
     // Count Total Documents matching filter
     const count = await Registration.countDocuments(queryObj);
-    console.log("📊 Total Records Found:", count);
 
     // Prepare Database Query
     let dbQuery = Registration.find(queryObj)
@@ -181,14 +172,10 @@ const getAllRegistrations = async (req, res) => {
     // ✅ LOGIC: Apply Pagination ONLY if limit is NOT 'all'
     if (req.query.limit !== 'all') {
        const skip = (page - 1) * limit;
-       console.log(`🚀 Applying Limit: ${limit}, Skip: ${skip}`);
        dbQuery = dbQuery.limit(limit).skip(skip);
-    } else {
-       console.log("🚀 Fetching ALL records (No Limit)");
     }
 
     const registrations = await dbQuery;
-    console.log(`✅ Returning ${registrations.length} registrations to frontend`);
 
     res.json({
       registrations,
@@ -214,7 +201,6 @@ const getRecentRegistrations = async (req, res) => {
       .limit(5)                // Only top 5
       .populate("eventId", "title"); 
     
-    console.log(`🔔 API Call: getRecentRegistrations - Found ${recentRegistrations.length}`);
     res.json(recentRegistrations);
   } catch (error) {
     console.error("Error fetching recent registrations:", error);

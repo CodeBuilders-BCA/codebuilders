@@ -77,10 +77,15 @@ const updateVolunteer = async (req, res) => {
 
     if (volunteer) {
       // Update Volunteer Details
+      
       volunteer.name = req.body.name || volunteer.name;
       volunteer.email = req.body.email || volunteer.email;
       volunteer.phone = req.body.phone || volunteer.phone;
-      volunteer.assignedEventId = req.body.assignedEventId || volunteer.assignedEventId;
+      if(req.body.assignedEventId === "No assignment") {
+        volunteer.assignedEventId = null;
+      } else {
+        volunteer.assignedEventId = req.body.assignedEventId || volunteer.assignedEventId;
+      }
 
       const updatedVolunteer = await volunteer.save();
 

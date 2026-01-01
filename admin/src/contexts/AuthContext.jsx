@@ -5,9 +5,9 @@ const apiUrl = import.meta.env.VITE_API_URL;
 // Create axios instance with base URL
 const api = axios.create({ baseURL: `${apiUrl}` });
 
-// Add token to every request if it exists
+// ✅ Interceptor checks BOTH storages
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -25,19 +25,18 @@ export function AuthProvider({ children }) {
 
   // Check roles based on user data
   const checkRoles = (userData) => {
-    // Modify this logic based on how your database stores roles
-    // Example: userData.role === 'admin' or userData.isAdmin === true
     setIsAdmin(userData?.role === 'admin' || userData?.isAdmin === true);
     setIsVolunteer(userData?.role === 'volunteer' || userData?.isVolunteer === true);
   };
 
+  // ✅ Initialization Logic
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem('token');
+      // Check both storages for an existing token
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      
       if (token) {
         try {
-          // Verify token and get user data from backend
-          // Ensure your backend has a GET /api/auth/me route
           const res = await api.get('/auth/me'); 
           const userData = res.data;
           
@@ -46,7 +45,9 @@ export function AuthProvider({ children }) {
           checkRoles(userData);
         } catch (error) {
           console.error('Error restoring session:', error);
+          // Clear both on error
           localStorage.removeItem('token');
+          sessionStorage.removeItem('token');
           setUser(null);
           setSession(null);
         }
@@ -57,42 +58,51 @@ export function AuthProvider({ children }) {
     initAuth();
   }, []);
 
-  const signUp = async (name, email, password) => {
-  try {
-    // Ensure backend route exists: POST /auth/register
-    const res = await api.post('/auth/register', {
-      name,
-      email,
-      password,
-    });
-
-    const { token, user: userData } = res.data;
-
-    localStorage.setItem('token', token);
-    setUser(userData);
-    setSession({ access_token: token });
-    checkRoles(userData);
-
-    return { error: null };
-  } catch (error) {
-    return {
-      error:
-        error.response?.data?.message ||
-        error.message ||
-        "Signup failed",
-    };
-  }
-};
-
-
-  const signIn = async (email, password) => {
+  // ✅ UPDATE: signUp now accepts 'phone'
+  const signUp = async (name, email, password, phone) => {
     try {
-      // Ensure your backend has a POST /api/auth/login route
+      const res = await api.post('/auth/register', {
+        name,
+        email,
+        password,
+        phone, // ✅ Send phone to backend
+      });
+
+      const { token, user: userData } = res.data;
+
+      // Default to LocalStorage for Sign Up (or you can use session based on logic)
+      // Usually sign up implies "I want to be logged in"
+      localStorage.setItem('token', token);
+      sessionStorage.removeItem('token'); 
+
+      setUser(userData);
+      setSession({ access_token: token });
+      checkRoles(userData);
+
+      return { error: null };
+    } catch (error) {
+      return {
+        error: error.response?.data?.message || error.message || "Signup failed",
+      };
+    }
+  };
+
+  // ✅ SignIn accepts 'rememberMe'
+  const signIn = async (email, password, rememberMe) => {
+    try {
       const res = await api.post('/auth/login', { email, password });
       
       const { token, user: userData } = res.data;
       
-      localStorage.setItem('token', token);
+      // Handle Storage based on "Remember Me"
+      if (rememberMe) {
+        localStorage.setItem('token', token);
+        sessionStorage.removeItem('token'); // Clean up session if moving to local
+      } else {
+        sessionStorage.setItem('token', token);
+        localStorage.removeItem('token'); // Clean up local if moving to session
+      }
+      
       setUser(userData);
       setSession({ access_token: token });
       checkRoles(userData);
@@ -105,14 +115,19 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // ✅ SignOut calls API before clearing storage
   const signOut = async () => {
     try {
-      // Optional: Call logout endpoint if needed
-      // await api.post('/auth/logout');
+      // 1. Notify Backend to set isLoggedIn: false
+      if (user?._id) {
+        await api.post('/auth/logout', { userId: user._id }); 
+      }
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
+      // 2. Clear Local State & Storage regardless of API success
       localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
       setUser(null);
       setSession(null);
       setIsAdmin(false);

@@ -7,7 +7,9 @@ class ApiClient {
 
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
-    const token = localStorage.getItem('token');
+
+    // ✅ FIX: Check BOTH LocalStorage AND SessionStorage for the token
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
     // Default headers
     const headers = {
@@ -32,9 +34,12 @@ class ApiClient {
       if (response.status === 401) {
         console.warn('[API] 401 Unauthorized - Session expired or invalid.');
         
+        // ✅ FIX: Clear BOTH storages on 401
         if (token) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
+            sessionStorage.removeItem('token'); // Clear session too
+            sessionStorage.removeItem('user');
             
             if (!window.location.pathname.includes('/auth')) {
                 window.location.href = '/auth';
@@ -54,6 +59,7 @@ class ApiClient {
       }
       
       return data;
+
     } catch (error) {
       console.error('[API] Request failed:', error);
       throw error;
@@ -72,11 +78,16 @@ class ApiClient {
     return this.request('/auth/register', { method: 'POST', body: JSON.stringify({ email, password, name }) });
   }
   
-  async getCurrentUser() { return this.request('/auth/me'); }
+  async getCurrentUser() { 
+    return this.request('/auth/me'); 
+  }
   
   async logout() { 
+      // ✅ FIX: Clear BOTH storages on logout
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('user');
       window.location.href = '/auth'; 
   }
 
@@ -101,26 +112,6 @@ class ApiClient {
       body: JSON.stringify({ email, otp, newPassword }) 
     });
   }
-
-  // ---------------------------------------------------------------------------
-  // 👤 USERS MANAGEMENT (ADMIN) - ✅ NEW ADDED
-  // ---------------------------------------------------------------------------
-
-  async getAllUsers() {
-    return this.request('/users'); 
-  }
-
-  async createUser(userData) {
-    return this.request('/users', { method: 'POST', body: JSON.stringify(userData) });
-  }
-
-  async updateUser(id, userData) {
-    return this.request(`/users/${id}`, { method: 'PUT', body: JSON.stringify(userData) });
-  }
-
-  async deleteUser(id) {
-    return this.request(`/users/${id}`, { method: 'DELETE' });
-  }
   
   // ---------------------------------------------------------------------------
   // 📅 EVENTS MANAGEMENT
@@ -135,62 +126,34 @@ class ApiClient {
     return this.request(`/events/${id}`);
   }
 
-  async createEvent(eventData) {
-    // Check if data is FormData (for image upload) or JSON
-    const body = eventData instanceof FormData ? eventData : JSON.stringify(eventData);
-    return this.request('/events', { method: 'POST', body });
+  // ---------------------------------------------------------------------------
+  // 👥 VOLUNTEERS
+  // ---------------------------------------------------------------------------
+  
+  async getVolunteers() { 
+    return this.request('/volunteers'); 
   }
+  
+  async getVolunteerMe() { 
+    return this.request('/volunteers/me'); 
+  } 
 
-  async updateEvent(id, eventData) {
-    const body = eventData instanceof FormData ? eventData : JSON.stringify(eventData);
-    return this.request(`/events/${id}`, { method: 'PUT', body });
-  }
-
-  async deleteEvent(id) {
-    return this.request(`/events/${id}`, { method: 'DELETE' });
+  async updateVolunteer(id, data) { 
+    return this.request(`/volunteers/${id}`, { method: 'PUT', body: JSON.stringify(data) }); 
   }
 
   // ---------------------------------------------------------------------------
-  // 👥 VOLUNTEERS & ADMIN
+  // 🎤 Team Member
   // ---------------------------------------------------------------------------
   
-  async getAdminOverview() { return this.request('/admin/overview'); }
-  
-  async getVolunteers() { return this.request('/volunteers'); }
-  
-  async getVolunteerMe() { return this.request('/volunteers/me'); } 
-
-  async createVolunteer(data) { return this.request('/volunteers', { method: 'POST', body: JSON.stringify(data) }); }
-  async updateVolunteer(id, data) { return this.request(`/volunteers/${id}`, { method: 'PUT', body: JSON.stringify(data) }); }
-  async deleteVolunteer(id) { return this.request(`/volunteers/${id}`, { method: 'DELETE' }); }
-
-  // ---------------------------------------------------------------------------
-  // 🎤 SPEAKERS
-  // ---------------------------------------------------------------------------
-  
-  async getSpeakers() {
-    return this.request('/speakers');
-  }
-  
-  async createSpeaker(speakerData) {
-    const body = speakerData instanceof FormData ? speakerData : JSON.stringify(speakerData);
-    return this.request('/speakers', { method: 'POST', body });
-  }
-  
-  async updateSpeaker(id, speakerData) {
-    const body = speakerData instanceof FormData ? speakerData : JSON.stringify(speakerData);
-    return this.request(`/speakers/${id}`, { method: 'PUT', body });
-  }
-  
-  async deleteSpeaker(id) {
-    return this.request(`/speakers/${id}`, { method: 'DELETE' });
+  async getTeamMembers() {
+    return this.request('/team-members');
   }
 
   // ---------------------------------------------------------------------------
   // 🎟️ REGISTRATIONS
   // ---------------------------------------------------------------------------
   
-  // 1. Admin: Get ALL registrations with pagination/search
   async getAllRegistrations(page = 1, search = '', limit = 10, eventId = null) { 
     const params = new URLSearchParams();
     
@@ -208,17 +171,14 @@ class ApiClient {
     return this.request(`/registrations?${params.toString()}`); 
   }
 
-  // 2. Admin: Get Recent Registrations
   async getRecentRegistrations() {
     return this.request('/registrations/recent');
   }
 
-  // 3. Volunteer/Admin - Get registrations for a SPECIFIC event
   async getEventRegistrations(eventId) {
     return this.request(`/registrations/event/${eventId}`);
   }
 
-  // 4. Update Attendance
   async toggleRegistrationAttendance(id, isAttended) {
       return this.request(`/registrations/${id}/attendance`, { 
         method: 'PUT', 
@@ -235,51 +195,43 @@ class ApiClient {
   }
   
   // ---------------------------------------------------------------------------
-  // 📩 MESSAGES
+  // 📩 MESSAGES (CONTACT)
   // ---------------------------------------------------------------------------
   
   async sendContactMessage(data) {
-    return this.request('/messages', { method: 'POST', body: JSON.stringify(data) });
+    // Assuming this maps to POST /api/contact
+    return this.request('/contact', { method: 'POST', body: JSON.stringify(data) });
   }
   
   async getContactMessages() {
-    return this.request('/messages'); 
+    return this.request('/contact'); 
   }
   
   async deleteContactMessage(id) {
-    return this.request(`/messages/${id}`, { method: 'DELETE' });
+    return this.request(`/contact/${id}`, { method: 'DELETE' });
+  }
+
+  // ✅ NEW: Mark Message as Read
+  async markMessageAsRead(id) {
+    return this.request(`/contact/${id}/read`, { method: 'PUT' });
   }
 
   // ---------------------------------------------------------------------------
-  // 🌍 EXTERNAL EVENTS (Workshops, Hackathons, etc.)
+  // 🌍 EXTERNAL EVENTS
   // ---------------------------------------------------------------------------
 
   async getExternalEvents(type = null, status = null) {
     const params = new URLSearchParams();
+    
     if (type) params.append('type', type);
     if (status) params.append('status', status);
+    
     const query = params.toString() ? `?${params.toString()}` : '';
     return this.request(`/external-events${query}`);
   }
 
   async getExternalEvent(id) {
     return this.request(`/external-events/${id}`);
-  }
-
-  // ✅ UPDATED: Supports FormData (for Image Uploads)
-  async createExternalEvent(data) {
-    const body = data instanceof FormData ? data : JSON.stringify(data);
-    return this.request('/external-events', { method: 'POST', body });
-  }
-
-  // ✅ UPDATED: Supports FormData
-  async updateExternalEvent(id, data) {
-    const body = data instanceof FormData ? data : JSON.stringify(data);
-    return this.request(`/external-events/${id}`, { method: 'PUT', body });
-  }
-
-  async deleteExternalEvent(id) {
-    return this.request(`/external-events/${id}`, { method: 'DELETE' });
   }
 }
 

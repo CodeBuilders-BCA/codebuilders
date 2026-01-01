@@ -14,7 +14,7 @@ const hpp = require('hpp');
 // Routes Import
 const authRoutes = require("./routes/authRoutes");
 const eventRoutes = require("./routes/eventRoutes");
-const speakerRoutes = require("./routes/speakerRoutes");
+const teamMemberRoutes = require("./routes/teamMemberRoutes");
 const registrationRoutes = require("./routes/registrationRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const volunteerRoutes = require("./routes/volunteerRoutes");
@@ -46,7 +46,7 @@ app.use(cors({
     // Agar koi aur domain hai to yaha add karein
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  credentials: true // Ab ye kaam karega kyunki humne specific origin diya hai
+  credentials: true
 }));
 
 // 3. Rate Limiting Logic
@@ -95,7 +95,7 @@ app.use(hpp());
 // Routes Use
 app.use("/api/auth", authRoutes);
 app.use("/api/events", eventRoutes);
-app.use("/api/speakers", speakerRoutes);
+app.use("/api/team-members", teamMemberRoutes);
 app.use("/api/registrations", registrationRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/volunteers", volunteerRoutes);

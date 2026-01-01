@@ -10,7 +10,7 @@ import Auth from "./pages/Auth";
 import AdminOverview from "./pages/admin/AdminOverview";
 import AdminEvents from "./pages/admin/AdminEvents";
 import AdminExternalEvents from "./pages/admin/AdminExternalEvents";
-import AdminSpeakers from "./pages/admin/AdminSpeakers";
+import AdminTeamMembers from "./pages/admin/AdminTeamMembers";
 import AdminRegistrations from "./pages/admin/AdminRegistrations";
 import AdminVolunteers from "./pages/admin/AdminVolunteers";
 import AdminUsers from './pages/admin/AdminUsers';
@@ -42,7 +42,7 @@ const App = () => (
             <Route path="/admin" element={<AdminOverview />} />
             <Route path="/admin/events" element={<AdminEvents />} />
             <Route path="/admin/external-events" element={<AdminExternalEvents />} />
-            <Route path="/admin/speakers" element={<AdminSpeakers />} />
+            <Route path="/admin/team-members" element={<AdminTeamMembers />} />
             <Route path="/admin/registrations" element={<AdminRegistrations />} />
             <Route path="/admin/volunteers" element={<AdminVolunteers />} />
             <Route path="/admin/users" element={<AdminUsers />} />

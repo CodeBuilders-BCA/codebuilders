@@ -41,21 +41,19 @@ const ExternalEvents = () => {
     e.target.src = PLACEHOLDER_IMAGE;
   };
 
-  // ✅ HELPER: Get Category (1=Upcoming, 2=Today, 3=Past)
   const getEventCategory = (date) => {
     const today = startOfDay(new Date());
     const eventDay = startOfDay(new Date(date));
 
-    if (eventDay > today) return 1; // Upcoming (Future Date)
-    if (eventDay.getTime() === today.getTime()) return 2; // Today
-    return 3; // Past
+    if (eventDay > today) return 1; 
+    if (eventDay.getTime() === today.getTime()) return 2; 
+    return 3; 
   };
 
   const filteredEvents = events?.filter((event) => {
     const eventDate = new Date(event.date);
     const isDateValid = isValid(eventDate);
     
-    // Check if event is strictly past (and NOT today)
     const isStrictlyPast = isDateValid && isPast(eventDate) && !isToday(eventDate);
 
     let computedStatus = event.status;
@@ -63,7 +61,6 @@ const ExternalEvents = () => {
       if (isStrictlyPast) {
         computedStatus = 'past';
       } else if (!computedStatus) {
-        // Default to upcoming for Future or Today
         computedStatus = 'upcoming';
       }
     }
@@ -87,24 +84,18 @@ const ExternalEvents = () => {
 
     return matchesStatus && matchesSearch;
   }).sort((a, b) => {
-      // ✅ SORTING LOGIC
       const dateA = new Date(a.date);
       const dateB = new Date(b.date);
-
       const categoryA = getEventCategory(dateA);
       const categoryB = getEventCategory(dateB);
 
-      // 1. Sort by Category Priority (Upcoming -> Today -> Past)
       if (categoryA !== categoryB) {
         return categoryA - categoryB;
       }
 
-      // 2. Tie-breakers
       if (categoryA === 3) {
-         // Past: Descending (Most recent past first)
          return dateB - dateA;
       } else {
-         // Upcoming/Today: Ascending (Nearest first)
          return dateA - dateB;
       }
   });
@@ -126,11 +117,11 @@ const ExternalEvents = () => {
       <main className="pt-24 pb-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <span className="text-primary font-mono text-sm tracking-wider uppercase">
+            <span className="text-blue-600 font-mono text-sm tracking-wider uppercase">
               // External Events
             </span>
             <h1 className="text-4xl md:text-6xl font-bold mt-4 mb-6">
-              {getPageTitle()} <span className="text-primary">External Events</span>
+              {getPageTitle()} <span className="text-blue-600">External Events</span>
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               Discover exciting events from the community and beyond.
@@ -145,7 +136,7 @@ const ExternalEvents = () => {
                 placeholder="Search by name, venue, organizer, date..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 rounded-lg bg-secondary border border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
+                className="w-full pl-10 pr-4 py-3 rounded-lg bg-secondary border border-border focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 transition-colors"
               />
             </div>
 
@@ -156,7 +147,7 @@ const ExternalEvents = () => {
                   onClick={() => handleFilterChange(tab)}
                   className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
                     filter === tab
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-blue-600 text-white"
                       : "bg-secondary text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -168,7 +159,7 @@ const ExternalEvents = () => {
 
           {isLoading && (
             <div className="flex justify-center py-16">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
             </div>
           )}
 
@@ -179,7 +170,6 @@ const ExternalEvents = () => {
                 const isDateValid = isValid(eventDateObj);
                 const isEventToday = isToday(eventDateObj);
 
-                // ✅ Determine Display Status
                 let displayStatus = event.status;
                 if (isDateValid) {
                   if (isEventToday) {
@@ -191,11 +181,14 @@ const ExternalEvents = () => {
 
                 const displayImage = getImageUrl(event.imageUrl);
 
+                // ✅ UPDATED: Added dark:text-black logic
+                const buttonClasses = "bg-blue-600 text-white dark:text-black hover:bg-blue-700 shadow-md shadow-blue-500/20";
+
                 return (
                   <Link
                     key={event._id}
                     to={`/external-events/${event._id}`}
-                    className="group glass rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-500 h-full flex flex-col"
+                    className="group glass rounded-2xl overflow-hidden hover:border-blue-500/50 transition-all duration-500 h-full flex flex-col"
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
                     <div className="relative h-48 overflow-hidden bg-gray-200 shrink-0">
@@ -210,18 +203,17 @@ const ExternalEvents = () => {
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${
                           event.type === "hackathon"
                             ? "bg-destructive text-destructive-foreground"
-                            : "bg-primary text-primary-foreground"
+                            : "bg-blue-600 text-white"
                         }`}>
                           {event.type}
                         </span>
 
-                        {/* ✅ Status Badge with Colors */}
+                        {/* Status Badge */}
                         <span className={cn(
                           "px-3 py-1 rounded-full text-xs font-semibold uppercase",
                           displayStatus === "Upcoming" && "bg-blue-600 text-white",
                           displayStatus === "Today" && "bg-green-600 text-white animate-pulse",
                           displayStatus === "Past" && "bg-muted text-foreground",
-                          // Fallback
                           !["Upcoming", "Today", "Past"].includes(displayStatus) && "bg-secondary text-secondary-foreground"
                         )}>
                           {displayStatus}
@@ -230,7 +222,7 @@ const ExternalEvents = () => {
                     </div>
 
                     <div className="p-6 flex flex-col flex-grow">
-                      <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors line-clamp-1">
+                      <h3 className="text-xl font-bold mb-2 group-hover:text-blue-600 transition-colors line-clamp-1">
                         {event.title}
                       </h3>
                       <p className="text-muted-foreground text-sm mb-4 line-clamp-2 flex-grow">
@@ -239,27 +231,29 @@ const ExternalEvents = () => {
 
                       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-6">
                         <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4 text-primary" />
+                          <Calendar className="w-4 h-4 text-blue-600" />
                           {isDateValid ? format(eventDateObj, "MMM d, yyyy") : "TBA"}
                         </div>
                         {event.venue && (
                           <div className="flex items-center gap-1">
-                            <MapPin className="w-4 h-4 text-primary" />
+                            <MapPin className="w-4 h-4 text-blue-600" />
                             <span className="truncate max-w-[100px]">{event.venue}</span>
                           </div>
                         )}
                         {event.organizer && (
                           <div className="flex items-center gap-1">
-                            <User className="w-4 h-4 text-primary" />
+                            <User className="w-4 h-4 text-blue-600" />
                             <span className="truncate max-w-[100px]">{event.organizer}</span>
                           </div>
                         )}
                       </div>
 
+                      {/* ✅ FORCE BLUE BUTTON */}
                       <div 
                         className={cn(
-                          buttonVariants({ variant: displayStatus === "Past" ? "secondary" : "default" }),
-                          "w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all"
+                          "h-10 px-4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+                          "w-full",
+                          buttonClasses // Now handles dark/light text color
                         )}
                       >
                         {displayStatus === "Past" ? "View Details" : "View Details"}
@@ -276,7 +270,7 @@ const ExternalEvents = () => {
             <div className="text-center py-16">
               <p className="text-muted-foreground text-lg">No external events found matching your criteria.</p>
               {filter !== 'all' && (
-                <Button variant="link" onClick={() => handleFilterChange('all')}>View All Events</Button>
+                <Button variant="link" onClick={() => handleFilterChange('all')} className="text-blue-600">View All Events</Button>
               )}
             </div>
           )}

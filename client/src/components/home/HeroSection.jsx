@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios"; 
-import { format, isAfter, isValid, isToday, startOfDay } from "date-fns"; // 👈 isToday aur startOfDay add kiya
+import { format, isAfter, isValid, isToday, startOfDay, isBefore } from "date-fns"; // 👈 Added isBefore
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Calendar, Users, Zap, Loader2 } from "lucide-react";
 
@@ -17,15 +17,22 @@ export function HeroSection() {
       try {
         const res = await axios.get(`${apiUrl}/events`);
         const allEvents = res.data;
-        const todayStart = startOfDay(new Date()); // Aaj subah 00:00:00
+        const now = new Date(); // Current date AND time
 
         // 1. Filter: Valid events only
         const activeEvents = allEvents.filter((event) => {
           const rawDate = event.dateTime || event.date;
           const eventDate = new Date(rawDate);
-          // Valid date HO aur (Aaj ho YA Future mein ho)
-          // Hum 'todayStart' se compare kar rahe hain taaki aaj ke events shaam tak dikhein
-          return isValid(eventDate) && (isToday(eventDate) || isAfter(eventDate, todayStart));
+          
+          if (!isValid(eventDate)) return false;
+
+          // Logic: 
+          // If event is today: Check if event time is in the future (compared to 'now')
+          // If event is NOT today: Check if it's after today (future date)
+          if (isToday(eventDate)) {
+             return isAfter(eventDate, now); // Only show if time hasn't passed yet
+          }
+          return isAfter(eventDate, now); // Future dates
         });
 
         // 2. Sort: Nearest date first
@@ -39,7 +46,7 @@ export function HeroSection() {
         if (activeEvents.length > 0) {
           const firstEvent = activeEvents[0];
           setNextEvent(firstEvent);
-          // Check agar ye event aaj hi hai
+          // Check if this event is today
           setIsEventToday(isToday(new Date(firstEvent.dateTime || firstEvent.date)));
         } else {
             setNextEvent(null);
@@ -91,7 +98,7 @@ export function HeroSection() {
                     <Zap className={`w-4 h-4 ${isEventToday ? "text-green-500 animate-pulse" : "text-primary"}`} />
                     <span className="text-sm font-medium">
                         {isEventToday 
-                            ? "Happening Today!" 
+                            ? "Event: Happening Today!" 
                             : `Next Event: ${format(new Date(nextEvent.dateTime || nextEvent.date), "MMM d, yyyy")}`
                         }
                     </span>

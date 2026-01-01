@@ -12,7 +12,7 @@ import ExternalEvents from "./pages/ExternalEvents";
 import ExternalEventDetail from "./pages/ExternalEventDetail";
 import Hackathons from "./pages/Hackathons";
 import EventDetail from "./pages/EventDetail";
-import Speakers from "./pages/Speakers";
+import TeamMembers from "./pages/TeamMembers";
 import Memories from "./pages/Memories";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -24,6 +24,7 @@ import Contact from "./pages/Contact";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import TicketView from "./pages/TicketView";
+import Developers from "./pages/Developers";
 import Profile from './pages/Profile'; 
 import ForgotPassword from './pages/ForgotPassword';
 
@@ -45,12 +46,13 @@ const App = () => (
             <Route path="/external-events/:id" element={<ExternalEventDetail />} />
             <Route path="/hackathons" element={<Hackathons />} />
             <Route path="/events/:id" element={<EventDetail />} />
-            <Route path="/speakers" element={<Speakers />} />
+            <Route path="/team-members" element={<TeamMembers />} />
             <Route path="/memories" element={<Memories />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
+            <Route path="/developers" element={<Developers />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />

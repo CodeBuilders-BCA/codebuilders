@@ -11,9 +11,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 
+// ✅ 1. Update Schema to include Phone
 const signupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
+  phone: z.string().optional(), // Optional Field
   password: z.string().min(6, 'Password must be at least 6 characters'),
   confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -37,13 +39,16 @@ export default function Signup() {
 
   const form = useForm({
     resolver: zodResolver(signupSchema),
-    defaultValues: { name: '', email: '', password: '', confirmPassword: '' },
+    defaultValues: { name: '', email: '', phone: '', password: '', confirmPassword: '' }, // ✅ Default value
   });
 
   const onSubmit = async (data) => {
     setIsLoading(true);
     try {
-      const result = await signUp(data.name, data.email, data.password);
+      // ✅ Pass phone to signUp function
+      // (Make sure to update AuthContext to accept this 4th parameter!)
+      const result = await signUp(data.name, data.email, data.password, data.phone);
+      
       if (result.error) {
         const errorMessage = typeof result.error === 'string' ? result.error : result.error?.message || "Registration failed";
         toast({ variant: 'destructive', title: 'Signup Failed', description: errorMessage });
@@ -79,6 +84,8 @@ export default function Signup() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              
+              {/* Name Field */}
               <FormField
                 control={form.control}
                 name="name"
@@ -93,6 +100,7 @@ export default function Signup() {
                 )}
               />
               
+              {/* Email Field */}
               <FormField
                 control={form.control}
                 name="email"
@@ -106,7 +114,26 @@ export default function Signup() {
                   </FormItem>
                 )}
               />
+
+              {/* ✅ Phone Field (New) */}
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex justify-between items-center">
+                        <FormLabel>Phone Number</FormLabel>
+                        <span className="text-xs text-muted-foreground">(Optional)</span>
+                    </div>
+                    <FormControl>
+                      <Input type="tel" placeholder="+91 9876543210" className="bg-input border-border" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               
+              {/* Password Field */}
               <FormField
                 control={form.control}
                 name="password"
@@ -135,6 +162,7 @@ export default function Signup() {
                 )}
               />
               
+              {/* Confirm Password Field */}
               <FormField
                 control={form.control}
                 name="confirmPassword"

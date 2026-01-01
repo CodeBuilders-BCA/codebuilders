@@ -57,18 +57,15 @@ export default function Contact() {
   };
 
   return (
-    // ✅ अपडेट 1: मेन कंटेनर में Theme Colors लगाए
     <div className="min-h-screen pt-20 pb-12 relative bg-background text-foreground transition-colors duration-300">
       <Navbar />
       
-      {/* ✅ अपडेट 2: बैकग्राउंड ग्रिड और ब्लब्स को थीम के अनुसार एडजेस्ट किया */}
       <div className="fixed inset-0 bg-grid-black/[0.02] dark:bg-grid-white/[0.02] pointer-events-none -z-10" />
       <div className="fixed top-20 right-0 w-72 h-72 bg-primary/10 dark:bg-primary/20 rounded-full blur-[80px] pointer-events-none -z-10" />
       <div className="fixed bottom-0 left-0 w-72 h-72 bg-purple-500/10 dark:bg-purple-500/20 rounded-full blur-[80px] pointer-events-none -z-10" />
 
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          {/* ✅ अपडेट 3: हेडिंग को ठीक किया (ताकि यह Light Mode में गायब न हो) */}
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground tracking-tight">
             Get in <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-600">Touch</span>
           </h1>
@@ -80,7 +77,6 @@ export default function Contact() {
         <div className="grid lg:grid-cols-2 gap-12 items-start">
           {/* Left Side: Contact Info */}
           <div className="space-y-8">
-            {/* ✅ अपडेट 4: कार्ड बैकग्राउंड्स */}
             <Card className="bg-card/50 backdrop-blur-sm border-border hover:border-primary/50 transition-colors shadow-sm">
               <CardContent className="p-8 space-y-8">
                 
@@ -124,11 +120,11 @@ export default function Contact() {
                       <a href="tel:+919265328747" className="block text-primary hover:underline font-medium">
                         +91 92653 28747
                       </a>
-                      <a href="tel:+917016798029" className="block text-primary hover:underline font-medium">
-                        +91 70167 98029
-                      </a>
                       <a href="tel:+919773272749" className="block text-primary hover:underline font-medium">
                         +91 97732 72749
+                      </a>
+                      <a href="tel:+917016798029" className="block text-primary hover:underline font-medium">
+                        +91 70167 98029
                       </a>
                     </div>
                   </div>
@@ -138,7 +134,6 @@ export default function Contact() {
             </Card>
 
             {/* Map Placeholder */}
-            {/* ✅ अपडेट 5: मैप कंटेनर का बॉर्डर */}
             <div className="h-64 rounded-xl overflow-hidden border border-border shadow-sm grayscale hover:grayscale-0 transition-all duration-500 bg-muted">
               <iframe 
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14686.517597375094!2d72.50043585!3d23.0373516!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395e9b7b96a8a5f3%3A0x7000000000000000!2sAhmedabad%2C%20Gujarat!5e0!3m2!1sen!2sin!4v1710000000000" 
@@ -154,7 +149,6 @@ export default function Contact() {
           </div>
 
           {/* Right Side: Form */}
-          {/* ✅ अपडेट 6: फॉर्म कार्ड बैकग्राउंड */}
           <Card className="bg-card/50 backdrop-blur-sm border-border shadow-lg">
             <CardHeader>
               <CardTitle className="text-foreground">Send a Message</CardTitle>

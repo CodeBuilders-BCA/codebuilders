@@ -31,28 +31,28 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Pencil, Trash2, Loader2, Github, Linkedin, Phone } from 'lucide-react'; 
 
-export default function AdminSpeakers() {
+export default function AdminTeamMembers() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingSpeaker, setEditingSpeaker] = useState(null);
+  const [editingTeamMember, setEditingTeamMember] = useState(null);
   const fileInputRef = useRef(null); 
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: speakers, isLoading } = useQuery({
-    queryKey: ['admin-speakers'],
+  const { data: teamMembers, isLoading } = useQuery({
+    queryKey: ['admin-team-members'],
     queryFn: async () => {
-      return await apiClient.getSpeakers();
+      return await apiClient.getTeamMembers();
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (formData) => { 
-      return await apiClient.createSpeaker(formData);
+      return await apiClient.createTeamMember(formData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-speakers'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-team-members'] });
       setIsDialogOpen(false);
-      toast({ title: 'Speaker added successfully' });
+      toast({ title: 'Team member added successfully' });
     },
     onError: (error) => {
       toast({ variant: 'destructive', title: 'Error', description: error.message });
@@ -61,13 +61,13 @@ export default function AdminSpeakers() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, formData }) => { 
-      return await apiClient.updateSpeaker(id, formData);
+      return await apiClient.updateTeamMember(id, formData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-speakers'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-team-members'] });
       setIsDialogOpen(false);
-      setEditingSpeaker(null);
-      toast({ title: 'Speaker updated successfully' });
+      setEditingTeamMember(null);
+      toast({ title: 'Team member updated successfully' });
     },
     onError: (error) => {
       toast({ variant: 'destructive', title: 'Error', description: error.message });
@@ -76,11 +76,11 @@ export default function AdminSpeakers() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id) => {
-      return await apiClient.deleteSpeaker(id);
+      return await apiClient.deleteTeamMember(id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-speakers'] });
-      toast({ title: 'Speaker deleted' });
+      queryClient.invalidateQueries({ queryKey: ['admin-team-members'] });
+      toast({ title: 'Team member deleted' });
     },
     onError: (error) => {
       toast({ variant: 'destructive', title: 'Error', description: error.message });
@@ -94,15 +94,15 @@ export default function AdminSpeakers() {
 
     // Note: formData automatically handles the file input named 'image' which matches backend
 
-    if (editingSpeaker) {
-      updateMutation.mutate({ id: editingSpeaker._id, formData });
+    if (editingTeamMember) {
+      updateMutation.mutate({ id: editingTeamMember._id, formData });
     } else {
       createMutation.mutate(formData);
     }
   };
 
-  const openEditDialog = (speaker) => {
-    setEditingSpeaker(speaker);
+  const openEditDialog = (teamMember) => {
+    setEditingTeamMember(teamMember);
     setIsDialogOpen(true);
   };
 
@@ -116,23 +116,23 @@ export default function AdminSpeakers() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-foreground">Speakers</h2>
-            <p className="text-muted-foreground">Manage event speakers and guests</p>
+            <h2 className="text-2xl font-bold text-foreground">Team Members</h2>
+            <p className="text-muted-foreground">Manage team members and their roles</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button onClick={() => setEditingSpeaker(null)}>
+              <Button onClick={() => setEditingTeamMember(null)}>
                 <Plus className="w-4 h-4 mr-2" />
-                Add Speaker
+                Add Team Member
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>{editingSpeaker ? 'Edit Speaker' : 'Add Speaker'}</DialogTitle>
+                <DialogTitle>{editingTeamMember ? 'Edit Team Member' : 'Add Team Member'}</DialogTitle>
                 <DialogDescription>
-                  {editingSpeaker 
-                    ? "Update the speaker's profile details." 
-                    : "Add a new industry expert to the speakers list."}
+                  {editingTeamMember 
+                    ? "Update the team member's profile details." 
+                    : "Add a new team member to the list."}
                 </DialogDescription>
               </DialogHeader>
               
@@ -140,20 +140,20 @@ export default function AdminSpeakers() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Name</Label>
-                    <Input id="name" name="name" defaultValue={editingSpeaker?.name} required />
+                    <Input id="name" name="name" defaultValue={editingTeamMember?.name} required />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="role">Role (e.g. Senior Engineer)</Label>
-                    <Input id="role" name="role" defaultValue={editingSpeaker?.role} required />
+                    <Input id="role" name="role" defaultValue={editingTeamMember?.role} required />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="specialty">Specialty</Label>
-                  <Input id="specialty" name="specialty" defaultValue={editingSpeaker?.specialty} required />
+                  <Input id="specialty" name="specialty" defaultValue={editingTeamMember?.specialty} required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
-                  <Textarea id="bio" name="bio" defaultValue={editingSpeaker?.bio} rows={3} />
+                  <Textarea id="bio" name="bio" defaultValue={editingTeamMember?.bio} rows={3} />
                 </div>
 
                 {/* File Upload Input */}
@@ -171,9 +171,9 @@ export default function AdminSpeakers() {
                   </div>
                   
                   {/* ✅ Updated: Use direct Cloudinary URL */}
-                  {editingSpeaker?.imageUrl && (
+                  {editingTeamMember?.imageUrl && (
                      <p className="text-xs text-muted-foreground">
-                        Current: <a href={editingSpeaker.imageUrl} target="_blank" rel="noopener noreferrer" className="underline">View Image</a>
+                        Current: <a href={editingTeamMember.imageUrl} target="_blank" rel="noopener noreferrer" className="underline">View Image</a>
                      </p>
                   )}
                 </div>
@@ -181,15 +181,15 @@ export default function AdminSpeakers() {
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="linkedinUrl">LinkedIn URL</Label>
-                    <Input id="linkedinUrl" name="linkedinUrl" defaultValue={editingSpeaker?.linkedinUrl} placeholder="https://linkedin.com/in/..." />
+                    <Input id="linkedinUrl" name="linkedinUrl" defaultValue={editingTeamMember?.linkedinUrl} placeholder="https://linkedin.com/in/..." />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="githubUrl">GitHub URL</Label>
-                    <Input id="githubUrl" name="githubUrl" defaultValue={editingSpeaker?.githubUrl} placeholder="https://github.com/..." />
+                    <Input id="githubUrl" name="githubUrl" defaultValue={editingTeamMember?.githubUrl} placeholder="https://github.com/..." />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="whatsappNumber">WhatsApp Number</Label>
-                    <Input id="whatsappNumber" name="whatsappNumber" defaultValue={editingSpeaker?.whatsappNumber} placeholder="+91 1234567890" />
+                    <Input id="whatsappNumber" name="whatsappNumber" defaultValue={editingTeamMember?.whatsappNumber} placeholder="+91 1234567890" />
                   </div>
                 </div>
 
@@ -197,7 +197,7 @@ export default function AdminSpeakers() {
                   <Button type="button" variant="outline" onClick={closeDialog}>Cancel</Button>
                   <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
                     {(createMutation.isPending || updateMutation.isPending) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    {editingSpeaker ? 'Update' : 'Add Speaker'}
+                    {editingTeamMember ? 'Update' : 'Add Team Member'}
                   </Button>
                 </div>
               </form>
@@ -223,31 +223,31 @@ export default function AdminSpeakers() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {speakers?.map((speaker) => (
-                    <TableRow key={speaker._id}>
+                  {teamMembers ?.map((teamMember) => (
+                    <TableRow key={teamMember._id}>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-3">
                           <Avatar>
                             {/* ✅ Updated: Use direct Cloudinary URL */}
-                            <AvatarImage src={speaker.imageUrl} />
-                            <AvatarFallback>{speaker.name.charAt(0)}</AvatarFallback>
+                            <AvatarImage src={teamMember.imageUrl} />
+                            <AvatarFallback>{teamMember.name.charAt(0)}</AvatarFallback>
                           </Avatar>
-                          {speaker.name}
+                          {teamMember.name}
                         </div>
                       </TableCell>
-                      <TableCell>{speaker.role}</TableCell>
-                      <TableCell>{speaker.specialty}</TableCell>
+                      <TableCell>{teamMember.role}</TableCell>
+                      <TableCell>{teamMember.specialty}</TableCell>
                       
                       <TableCell>
                         <div className="flex gap-2">
-                          {speaker.linkedinUrl && <Linkedin className="w-4 h-4 text-blue-500" />}
-                          {speaker.githubUrl && <Github className="w-4 h-4 text-gray-500" />}
-                          {speaker.whatsappNumber && <Phone className="w-4 h-4 text-green-500" />}
+                          {teamMember.linkedinUrl && <Linkedin className="w-4 h-4 text-blue-500" />}
+                          {teamMember.githubUrl && <Github className="w-4 h-4 text-gray-500" />}
+                          {teamMember.whatsappNumber && <Phone className="w-4 h-4 text-green-500" />}
                         </div>
                       </TableCell>
                       
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(speaker)}>
+                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(teamMember)}>
                           <Pencil className="w-4 h-4" />
                         </Button>
 
@@ -259,15 +259,15 @@ export default function AdminSpeakers() {
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Speaker?</AlertDialogTitle>
+                              <AlertDialogTitle>Delete Team Member?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to remove <strong>{speaker.name}</strong>? This cannot be undone.
+                                Are you sure you want to remove <strong>{teamMember.name}</strong>? This cannot be undone.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction 
-                                onClick={() => deleteMutation.mutate(speaker._id)}
+                                onClick={() => deleteMutation.mutate(teamMember._id)}
                                 className="bg-destructive hover:bg-destructive/90"
                               >
                                 Delete

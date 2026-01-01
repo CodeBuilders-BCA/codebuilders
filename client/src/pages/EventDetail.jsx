@@ -1,20 +1,21 @@
 import { useState, useEffect } from "react";
-// 1. Add useNavigate and useLocation to imports
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom"; 
 import axios from "axios";
 import { Helmet } from "react-helmet-async";
+import { useAuth } from "@/contexts/AuthContext"; // ✅ IMPORT AUTH CONTEXT
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calendar, MapPin, ArrowLeft, Loader2, Share2, ShieldCheck, AlertCircle, Copy, Image as ImageIcon, X, Download, ExternalLink } from "lucide-react";
+import { Calendar, MapPin, ArrowLeft, Loader2, Share2, ShieldCheck, AlertCircle, Copy, Image as ImageIcon, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format, isValid, isPast, addHours } from "date-fns";
 import AddToCalendar from "@/components/events/AddToCalendar";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
+// --- Sidebar Component ---
 const EventSidebar = ({ 
   event, 
   user, 
@@ -29,26 +30,23 @@ const EventSidebar = ({
   eventDateObj, 
   isEventOver 
 }) => {
-  // 2. Initialize hooks for navigation
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast(); 
 
   const handleRegistrationClick = () => {
-    // 3. LOGIC: If user is not logged in, send to login page
+    // LOGIC 1: Check Global Auth State
     if (!user) {
       toast({
         title: "Login Required",
         description: "Please log in to register for this event.",
         variant: "default", 
       });
-      
-      // Navigate to login, passing the current location so you can redirect back later
       navigate("/login", { state: { from: location.pathname } });
       return;
     }
 
-    // If logged in, show the form
+    // LOGIC 2: If Logged In, Open Form (Data is already autofilled)
     setIsRegistering(true);
   };
 
@@ -123,85 +121,57 @@ const EventSidebar = ({
                       ? "Login to Register" 
                       : "Register Now"}
                 </Button>
-
                 <p className="text-xs text-center text-muted-foreground">
-                  {event.maxAttendees
-                    ? `${event.maxAttendees} spots available`
-                    : "Limited capacity"}
+                  {event.maxAttendees ? `${event.maxAttendees} spots available` : "Limited capacity"}
                 </p>
               </div>
             )}
 
             {/* REGISTRATION FORM */}
-            <form
-              onSubmit={handleRegister}
-              className={`space-y-4 ${!isRegistering ? "hidden" : "block"}`}
-            >
-              <h4 className="text-lg font-semibold text-center">
-                Complete Your Registration
-              </h4>
-
+            <form onSubmit={handleRegister} className={`space-y-4 ${!isRegistering ? "hidden" : "block"}`}>
+              <h4 className="text-lg font-semibold text-center">Complete Your Registration</h4>
               <div>
                 <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                  required
+                <Input 
+                  id="name" 
+                  type="text" 
+                  value={formData.name} 
+                  onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))} 
+                  required 
                 />
               </div>
-
               <div>
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, email: e.target.value }))
-                  }
-                  required
+                <Input 
+                  id="email" 
+                  type="email" 
+                  value={formData.email} 
+                  onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))} 
+                  required 
                 />
               </div>
-
               <div>
                 <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, phone: e.target.value }))
-                  }
+                <Input 
+                  id="phone" 
+                  type="tel" 
+                  value={formData.phone} 
+                  onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))} 
+                  placeholder="+91 9876543210"
                 />
               </div>
-
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  type="button"
-                  onClick={() => setIsRegistering(false)}
-                >
-                  Cancel
-                </Button>
+                <Button variant="outline" className="flex-1" type="button" onClick={() => setIsRegistering(false)}>Cancel</Button>
                 <Button className="flex-1 font-bold" type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    "Confirm"
-                  )}
+                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirm"}
                 </Button>
               </div>
             </form>
           </div>
         )}
       </div>
-       {/* Share Button logic... */}
-       <div
+
+      <div
         className="glass rounded-xl p-4 border border-border/50 items-center justify-between cursor-pointer hover:bg-secondary/30 transition-colors hidden md:flex"
         onClick={handleShare}
       >
@@ -222,83 +192,67 @@ const EventSidebar = ({
   );
 };
 
-// ... EventDetail component ...
-
+// --- Main Component ---
 const EventDetail = () => {
   const { id } = useParams();
   const { toast } = useToast();
-  const [user, setUser] = useState(null);
+  
+  const { user } = useAuth(); 
+  
   const [event, setEvent] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRegistering, setIsRegistering] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ name: "", email: "", phone: "" });
-  // Removed selectedImage state as we don't have a modal gallery anymore
 
   const PLACEHOLDER_IMAGE = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&q=80";
 
+  // ✅ 2. Auto-Fill Effect: Runs whenever `user` changes (e.g., after login)
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) return;
+    if (user) {
+      setFormData({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || ""
+      });
+    }
+  }, [user]);
 
-        const res = await axios.get(`${apiUrl}/auth/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        setUser(res.data);
-        setFormData(prev => ({ 
-            ...prev,
-            name: res.data.name || "", 
-            email: res.data.email || "" 
-        }));
-      } catch (error) {
-        setUser(null);
-      }
-    };
-
+  useEffect(() => {
     const fetchEvent = async () => {
+      setIsLoading(true);
       try {
         const res = await axios.get(`${apiUrl}/events/${id}`);
         setEvent(res.data);
-      } catch (error) {
-        console.error("Event not found", error);
-      } finally {
-        setIsLoading(false);
+      } catch (error) { 
+        console.error("Event not found", error); 
+      } finally { 
+        setIsLoading(false); 
       }
     };
 
-    if (id) {
-      fetchEvent();
-      fetchUser();
-    }
+    if (id) { fetchEvent(); }
   }, [id]);
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await axios.post(`${apiUrl}/registrations`, {
-        eventId: event._id,
-        userName: formData.name,
-        userEmail: formData.email,
-        userPhone: formData.phone,
+      await axios.post(`${apiUrl}/registrations`, { 
+        eventId: event._id, 
+        userName: formData.name, 
+        userEmail: formData.email, 
+        userPhone: formData.phone 
       });
+      
       toast({ title: "Registration Successful!", description: "Check your email for the ticket." });
       setIsRegistering(false);
-      setFormData({ name: "", email: "", phone: "" });
+      // Optional: Don't clear form immediately to improve UX
+      // setFormData({ name: "", email: "", phone: "" }); 
+
     } catch (err) {
-      toast({
-        title: "Registration Failed",
-        description: err.response?.data?.message || "Something went wrong.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+      toast({ title: "Registration Failed", description: err.response?.data?.message || "Something went wrong.", variant: "destructive" });
+    } finally { setIsSubmitting(false); }
   };
 
   const getImageUrl = (imagePath) => {
@@ -310,13 +264,10 @@ const EventDetail = () => {
     return `${baseUrl}${normalizedPath}`;
   };
 
-  const handleImageError = (e) => {
-    e.target.src = PLACEHOLDER_IMAGE;
-  };
+  const handleImageError = (e) => { e.target.src = PLACEHOLDER_IMAGE; };
 
   const displayImage = event ? getImageUrl(event.imageUrl || event.image_url) : PLACEHOLDER_IMAGE;
 
-  // ✅ Updated handleShare with Fallback logic
   const handleShare = async () => {
     if (!event) return;
     const eventDate = new Date(event.dateTime).toDateString();
@@ -328,32 +279,16 @@ const EventDetail = () => {
 
     const shareTitle = `🚀 Event Alert: ${event.title}`;
     const shareText = `🚀 *Event Alert: ${event.title}*\n\nReady to level up? Join us for an exclusive session at CodeBuilders!\n\n📅 *Date:* ${eventDate} at ${eventTime}\n📍 *Venue:* ${event.venue}\n💡 *Topic:* ${shortDesc}\n\n👇 *Register & Details:*`;
+    
     const shareUrl = window.location.href;
 
     if (navigator.share) {
       try {
-        const imgSource = event.image || event.imageUrl || event.image_url;
-        if (imgSource) {
-          try {
-            const imgUrl = imgSource; 
-            const response = await fetch(imgUrl + "?t=" + new Date().getTime(), { mode: 'cors' });
-            const blob = await response.blob();
-            const file = new File([blob], "event-cover.jpg", { type: "image/jpeg" });
-
-            await navigator.share({ 
-              title: shareTitle, 
-              text: shareText + "\n" + shareUrl, 
-              files: [file] 
-            });
-            return; 
-
-          } catch (fileError) { 
-            console.warn("Image sharing failed, switching to text-only", fileError); 
-          }
-        }
-
-        await navigator.share({ title: shareTitle, text: shareText, url: shareUrl });
-
+        await navigator.share({ 
+            title: shareTitle, 
+            text: shareText, 
+            url: shareUrl 
+        });
       } catch (err) { 
         console.log("Share canceled", err); 
       }
@@ -382,7 +317,17 @@ const EventDetail = () => {
       <Helmet>
         <title>{event.title} | CodeBuilders</title>
         <meta name="description" content={event.description} />
+        <meta property="og:title" content={`Event: ${event.title}`} />
+        <meta property="og:description" content={event.description} />
+        <meta property="og:image" content={displayImage} />
+        <meta property="og:url" content={window.location.href} />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={event.title} />
+        <meta name="twitter:description" content={event.description} />
+        <meta name="twitter:image" content={displayImage} />
       </Helmet>
+
       <Navbar />
 
       <main className="pt-24 pb-20">
@@ -419,21 +364,13 @@ const EventDetail = () => {
                 </div>
               </div>
 
-              {/* ✅ 2. MOBILE ONLY SIDEBAR (Passed props) */}
+              {/* Mobile Sidebar */}
               <div className="block lg:hidden mt-8 mb-8">
                 <EventSidebar 
-                  event={event}
-                  user={user}
-                  formData={formData}
-                  setFormData={setFormData}
-                  isRegistering={isRegistering}
-                  setIsRegistering={setIsRegistering}
-                  isSubmitting={isSubmitting}
-                  handleRegister={handleRegister}
-                  handleShare={handleShare}
-                  isDateValid={isDateValid}
-                  eventDateObj={eventDateObj}
-                  isEventOver={isEventOver}
+                  event={event} user={user} formData={formData} setFormData={setFormData}
+                  isRegistering={isRegistering} setIsRegistering={setIsRegistering} isSubmitting={isSubmitting}
+                  handleRegister={handleRegister} handleShare={handleShare} isDateValid={isDateValid}
+                  eventDateObj={eventDateObj} isEventOver={isEventOver}
                 />
               </div>
 
@@ -460,46 +397,30 @@ const EventDetail = () => {
                 </div>
               )}
 
-              {/* ✅ NEW: Memories Link Button Section */}
               {event.memoriesUrl && (
                 <div className="space-y-6 pt-8 border-t border-border mt-8">
                   <div className="flex items-center gap-2">
                     <ImageIcon className="w-6 h-6 text-primary" />
                     <h3 className="text-2xl font-semibold">Event Memories</h3>
                   </div>
-                  
                   <div className="bg-muted/50 rounded-xl p-6 border border-border text-center">
-                    <p className="text-muted-foreground mb-4">
-                      Check out the photo gallery from this event on our external album!
-                    </p>
-                    
+                    <p className="text-muted-foreground mb-4">Check out the photo gallery from this event on our external album!</p>
                     <Button asChild size="lg" className="font-bold gap-2">
-                      <a href={event.memoriesUrl} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="w-4 h-4" />
-                        View Photo Album
-                      </a>
+                      <a href={event.memoriesUrl} target="_blank" rel="noopener noreferrer"><ExternalLink className="w-4 h-4" /> View Photo Album</a>
                     </Button>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* ✅ 3. DESKTOP ONLY SIDEBAR (Passed props) */}
-            <div className="lg:col-span-4 hidden lg:block">
-              <div className="lg:sticky lg:top-24 space-y-6">
+            {/* Desktop Sidebar */}
+            <div className="hidden lg:block lg:col-span-4 space-y-8">
+              <div className="sticky top-24">
                 <EventSidebar 
-                  event={event}
-                  user={user}
-                  formData={formData}
-                  setFormData={setFormData}
-                  isRegistering={isRegistering}
-                  setIsRegistering={setIsRegistering}
-                  isSubmitting={isSubmitting}
-                  handleRegister={handleRegister}
-                  handleShare={handleShare}
-                  isDateValid={isDateValid}
-                  eventDateObj={eventDateObj}
-                  isEventOver={isEventOver}
+                  event={event} user={user} formData={formData} setFormData={setFormData}
+                  isRegistering={isRegistering} setIsRegistering={setIsRegistering} isSubmitting={isSubmitting}
+                  handleRegister={handleRegister} handleShare={handleShare} isDateValid={isDateValid}
+                  eventDateObj={eventDateObj} isEventOver={isEventOver}
                 />
               </div>
             </div>
@@ -507,7 +428,6 @@ const EventDetail = () => {
         </div>
       </main>
       <Footer />
-      {/* Deleted the modal code block that was here */}
     </div>
   );
 };

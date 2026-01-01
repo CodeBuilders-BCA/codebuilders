@@ -9,12 +9,13 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, User, Mail, Shield } from 'lucide-react';
+import { Loader2, User, Mail, Shield, Phone, ArrowLeft } from 'lucide-react';
 import { apiClient } from '@/integrations/api/client';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
+  phone: z.string().optional(),
 });
 
 export default function Profile() {
@@ -26,7 +27,7 @@ export default function Profile() {
 
   const form = useForm({
     resolver: zodResolver(profileSchema),
-    defaultValues: { name: '', email: '' },
+    defaultValues: { name: '', email: '', phone: '' },
   });
 
   useEffect(() => {
@@ -35,20 +36,38 @@ export default function Profile() {
       return;
     }
 
-    // Set form values when user data is available
     form.reset({
       name: user.name || '',
       email: user.email || '',
+      phone: user.phone || '', 
     });
   }, [user, navigate, form]);
+
+  // ✅ New Logic: Handle Back Navigation based on Role
+  const handleBack = () => {
+    if (user?.role === 'volunteer') {
+      navigate('/volunteer');
+    } 
+    else {
+      navigate('/');
+    }
+  };
 
   const onSubmit = async (data) => {
     setIsUpdating(true);
     try {
-      await apiClient.updateProfile({ name: data.name });
+      await apiClient.updateProfile({ 
+        name: data.name,
+        email: data.email,
+        phone: data.phone
+      });
+      
       toast({ title: 'Success', description: 'Profile updated successfully!' });
-      // You might want to update the user context here
-      // For now, we'll just show success
+      
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+      
     } catch (error) {
       const errorMessage = error.response?.data?.message || error.message || "Update failed";
       toast({ variant: 'destructive', title: 'Update Failed', description: errorMessage });
@@ -72,12 +91,27 @@ export default function Profile() {
     );
   }
 
+  console.log("Rendering Profile for user:", user);
+
   return (
     <div className="min-h-screen bg-background bg-grid py-20">
       <div className="container mx-auto px-4">
         <div className="max-w-2xl mx-auto">
-          <Card className="glass glow-box">
-            <CardHeader className="text-center">
+          
+          <Card className="glass glow-box relative"> 
+            
+            {/* ✅ Updated Back Button with Logic */}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="absolute top-4 left-4 text-muted-foreground hover:text-foreground"
+              onClick={handleBack} 
+              title={user.role === 'volunteer' ? "Back to Dashboard" : "Back to Home"}
+            >
+              <ArrowLeft className="w-6 h-6" />
+            </Button>
+
+            <CardHeader className="text-center pt-10">
               <div className="flex justify-center mb-4">
                 <div className="p-3 rounded-xl bg-primary/10 border border-primary/20">
                   <User className="w-8 h-8 text-primary" />
@@ -105,6 +139,14 @@ export default function Profile() {
                   <div>
                     <p className="text-sm text-muted-foreground">Email</p>
                     <p className="font-medium">{user.email}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                  <Phone className="w-5 h-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Phone</p>
+                    <p className="font-medium">{user.phone || "Not set"}</p>
                   </div>
                 </div>
                 
@@ -144,6 +186,25 @@ export default function Profile() {
                           <FormLabel>Email</FormLabel>
                           <FormControl>
                             <Input type="email" placeholder="your@email.com" className="bg-input border-border" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone Number</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="tel" 
+                              placeholder="+91 9876543210" 
+                              className="bg-input border-border" 
+                              {...field} 
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

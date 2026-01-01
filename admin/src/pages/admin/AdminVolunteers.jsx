@@ -194,7 +194,7 @@ export default function AdminVolunteers() {
                       <SelectValue placeholder="Select event" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="unassigned">No assignment</SelectItem>
+                      <SelectItem value={null} >No assignment</SelectItem>
                       {events?.map((event) => (
                         <SelectItem key={event._id} value={event._id}>{event.title}</SelectItem>
                       ))}

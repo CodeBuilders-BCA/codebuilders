@@ -8,12 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Checkbox } from "@/components/ui/checkbox"; // ✅ Checkbox Import
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
+  rememberMe: z.boolean().default(false).optional(), // ✅ Schema Update
 });
 
 export default function Login() {
@@ -31,13 +33,15 @@ export default function Login() {
 
   const form = useForm({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
+    defaultValues: { email: '', password: '', rememberMe: false }, // ✅ Default Value
   });
 
   const onSubmit = async (data) => {
     setIsLoading(true);
     try {
-      const result = await signIn(data.email, data.password);
+      // Pass rememberMe to signIn function (You might need to update AuthContext too)
+      const result = await signIn(data.email, data.password, data.rememberMe);
+      
       if (result.error) {
         const errorMessage = typeof result.error === 'string' ? result.error : result.error?.message || "Invalid email or password";
         toast({ variant: 'destructive', title: 'Login Failed', description: errorMessage });
@@ -119,6 +123,27 @@ export default function Login() {
                       </div>
                     </FormControl>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* ✅ Keep Me Logged In Checkbox */}
+              <FormField
+                control={form.control}
+                name="rememberMe"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-1">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
+                        Keep me logged in
+                      </FormLabel>
+                    </div>
                   </FormItem>
                 )}
               />

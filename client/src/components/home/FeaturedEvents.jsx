@@ -1,9 +1,9 @@
-import { Button, buttonVariants } from "@/components/ui/button"; 
-import { cn } from "@/lib/utils"; 
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { Calendar, MapPin, Users, ArrowRight, Loader2 } from "lucide-react";
-import { format, isValid, isPast, isToday } from "date-fns"; // ✅ isToday imported
-import { useFeaturedEvents } from "@/hooks/useEvents"; 
+import { format, isValid, isPast, isToday } from "date-fns";
+import { useFeaturedEvents } from "@/hooks/useEvents";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -14,7 +14,7 @@ export function FeaturedEvents() {
   const PLACEHOLDER_IMAGE = "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80";
 
   const getImageUrl = (imagePath) => {
-    if (!imagePath) return PLACEHOLDER_IMAGE; 
+    if (!imagePath) return PLACEHOLDER_IMAGE;
     if (imagePath.startsWith("http") || imagePath.startsWith("https")) {
       return imagePath;
     }
@@ -33,18 +33,12 @@ export function FeaturedEvents() {
     .filter((event) => {
         const rawDate = event.dateTime || event.date;
         const eventDateObj = new Date(rawDate);
-        
-        // Logic: 
-        // 1. Date valid honi chahiye
-        // 2. Event PAST nahi hona chahiye OR Event TODAY hona chahiye
-        // (isPast time bhi check karta hai, isliye shaam ko subah ke event past na maane jaye, isliye isToday jaroori hai)
         return isValid(eventDateObj) && (!isPast(eventDateObj) || isToday(eventDateObj));
     })
     .sort((a, b) => {
-        // Nearest date pehle (Ascending Order)
         const dateA = new Date(a.dateTime || a.date);
         const dateB = new Date(b.dateTime || b.date);
-        return dateA - dateB; 
+        return dateA - dateB;
     });
 
   return (
@@ -52,14 +46,14 @@ export function FeaturedEvents() {
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <span className="text-primary font-mono text-sm tracking-wider uppercase">
+          <span className="text-blue-600 font-mono text-sm tracking-wider uppercase">
             // Upcoming Events
           </span>
           <h2 className="text-4xl md:text-5xl font-bold mt-4 mb-6">
             Don't Miss Out
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Register for our upcoming events and be part of the most exciting 
+            Register for our upcoming events and be part of the most exciting
             tech community gatherings.
           </p>
         </div>
@@ -67,7 +61,7 @@ export function FeaturedEvents() {
         {/* Loading State */}
         {isLoading && (
           <div className="flex justify-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
           </div>
         )}
 
@@ -75,14 +69,37 @@ export function FeaturedEvents() {
         {!isLoading && upcomingEvents.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             {upcomingEvents.map((event, index) => {
-              
-              const rawDate = event.dateTime || event.date; 
+
+              const rawDate = event.dateTime || event.date;
               const eventDateObj = new Date(rawDate);
               const isDateValid = isValid(eventDateObj);
+
+              // ✅ Status Logic (Time Aware)
+              const isEventToday = isToday(eventDateObj);
+              const isEventPast = isPast(eventDateObj); 
+
+              let displayStatus = "Upcoming";
+              // Badge color forced to Blue
+              let statusColorClass = "bg-blue-600 text-white"; 
+
+              if (isEventToday) {
+                  if (isEventPast) {
+                      displayStatus = "Happened Today";
+                      statusColorClass = "bg-muted text-muted-foreground"; 
+                  } else {
+                      displayStatus = "Happening Today";
+                      statusColorClass = "bg-green-600 text-white animate-pulse shadow-lg shadow-green-500/20"; 
+                  }
+              }
+
+              const buttonText = isEventPast ? "View Details" : "Register Now";
               
-              // ✅ Status Badge Logic
-              const isHappeningToday = isToday(eventDateObj);
-              const displayStatus = isHappeningToday ? "Happening Today" : "Upcoming";
+              // ✅ BUTTON LOGIC:
+              // Light Mode: text-white
+              // Dark Mode: dark:text-black
+              const buttonClasses = isEventPast 
+                ? "bg-secondary text-secondary-foreground hover:bg-secondary/80" 
+                : "bg-blue-600 text-white dark:text-black hover:bg-blue-700 shadow-md shadow-blue-500/20";
 
               const displayImage = getImageUrl(event.imageUrl || event.image_url);
 
@@ -90,26 +107,24 @@ export function FeaturedEvents() {
                 <Link
                   to={`/events/${event._id}`}
                   key={event._id}
-                  className="group glass rounded-2xl overflow-hidden hover:border-primary/50 transition-all duration-500 animate-fade-in h-full flex flex-col"
+                  className="group glass rounded-2xl overflow-hidden hover:border-blue-500/50 transition-all duration-500 animate-fade-in h-full flex flex-col"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   {/* Image Section */}
                   <div className="relative h-48 overflow-hidden shrink-0">
                     <img
-                      src={displayImage} 
+                      src={displayImage}
                       alt={event.title}
-                      onError={handleImageError} 
+                      onError={handleImageError}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
-                    
-                    {/* ✅ Dynamic Badge */}
+
+                    {/* Badge */}
                     <div className="absolute top-4 right-4">
                       <span className={cn(
                         "px-3 py-1 rounded-full text-xs font-semibold uppercase",
-                        isHappeningToday 
-                          ? "bg-green-600 text-white animate-pulse shadow-lg shadow-green-500/20" // Today Highlight
-                          : "bg-primary/90 text-primary-foreground"
+                        statusColorClass
                       )}>
                         {displayStatus}
                       </span>
@@ -118,39 +133,40 @@ export function FeaturedEvents() {
 
                   {/* Content Section */}
                   <div className="p-6 flex flex-col flex-grow">
-                    <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors line-clamp-1">
+                    <h3 className="text-xl font-bold mb-2 group-hover:text-blue-600 transition-colors line-clamp-1">
                       {event.title}
                     </h3>
                     <p className="text-muted-foreground text-sm mb-4 line-clamp-2 flex-grow">
                       {event.description}
                     </p>
 
-                    {/* Meta */}
+                    {/* Meta Info */}
                     <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-6">
                       <div className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4 text-primary" />
+                        <Calendar className="w-4 h-4 text-blue-600" />
                         {isDateValid ? format(eventDateObj, "MMM d, yyyy") : "TBA"}
                       </div>
                       <div className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4 text-primary" />
+                        <MapPin className="w-4 h-4 text-blue-600" />
                         <span className="truncate max-w-[100px]">{event.venue}</span>
                       </div>
                       {(event.max_attendees || event.maxAttendees) && (
                         <div className="flex items-center gap-1">
-                          <Users className="w-4 h-4 text-primary" />
+                          <Users className="w-4 h-4 text-blue-600" />
                           {event.maxAttendees || event.max_attendees}+ spots
                         </div>
                       )}
                     </div>
 
-                    {/* Button */}
+                    {/* ✅ EXACT BUTTON STRUCTURE */}
                     <div 
-                      className={cn(
-                        buttonVariants({ variant: "outline" }),
-                        "w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all"
-                      )}
-                    >
-                      Register Now
+                        className={cn(
+                          "h-10 px-4 py-2 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+                          "w-full",
+                          buttonClasses
+                        )}
+                      >
+                      {buttonText}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </div>
                   </div>
@@ -159,7 +175,6 @@ export function FeaturedEvents() {
             })}
           </div>
         ) : (
-            // ✅ Empty State Message
             !isLoading && (
                 <div className="text-center py-8 mb-8">
                     <p className="text-muted-foreground">No upcoming events scheduled at the moment.</p>
@@ -170,7 +185,10 @@ export function FeaturedEvents() {
         {/* View All Button */}
         <div className="text-center">
           <Link to="/events">
-            <Button variant="hero-outline" size="lg">
+            <Button 
+                size="lg" 
+                className="bg-blue-600 hover:bg-blue-700 text-white dark:text-black shadow-lg shadow-blue-500/25 border-none"
+            >
               View All Events
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
