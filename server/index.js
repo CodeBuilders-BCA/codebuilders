@@ -28,6 +28,8 @@ connectDB();
 const app = express();
 
 // --- SECURITY MIDDLEWARES START ---
+// Enable trust proxy
+app.set('trust proxy', 1);
 
 // 1. Set Security Headers
 // We enable crossOriginResourcePolicy to allow resources to be loaded from cross-origin
@@ -36,18 +38,26 @@ app.use(helmet({
 }));
 
 // 2. ✅ CORS Configuration (FIXED)
-// '*' ke sath credentials: true kaam nahi karta. Specific domains batane padte hain.
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "https://codebuilders-client.vercel.app",
+  "https://codebuildersadmin.vercel.app",
+  "https://codebuilders-events.vercel.app",
+  "https://codebuilders-admin.vercel.app",
+  "https://www.codebuilders.co.in",
+];
+
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "http://localhost:5174",                   // Localhost Frontend
-    "https://codebuilders-client.vercel.app",  // Live Frontend (Update karein agar URL alag hai)
-    "https://codebuildersadmin.vercel.app",
-    "https://codebuilders-events.vercel.app",
-    "https://codebuilders-admin.vercel.app",
-    "https://www.codebuilders.co.in",
-    // Agar koi aur domain hai to yaha add karein
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   credentials: true
 }));
