@@ -21,7 +21,7 @@ const profileSchema = z.object({
 export default function Profile() {
   const [isLoading, setIsLoading] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, signOut, isLoading: authIsLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -31,6 +31,9 @@ export default function Profile() {
   });
 
   useEffect(() => {
+
+    if (authIsLoading) return;
+
     if (!user) {
       navigate('/login');
       return;
